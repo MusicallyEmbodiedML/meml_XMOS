@@ -6,9 +6,9 @@
 #include "i2s.h"
 #include <stdio.h>
 
-#include "audio_app.h"
+#include "audio/audio_app.h"
 #include "codec_setup.h"
-#include "audio_buffers.h"
+#include "audio/audio_buffers.h"
 
 #ifndef XMOS_I2S_MASTER
 #define XMOS_I2S_MASTER         1
