@@ -12,6 +12,8 @@ _deps
 CMakeUserPresets.json
 build
 bin
+*.a
+*.xe
 /lib_board_support
 /lib_i2c
 /lib_i2s

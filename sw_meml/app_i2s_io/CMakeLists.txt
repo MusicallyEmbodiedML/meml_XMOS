@@ -5,7 +5,8 @@ project(app_i2s_io)
 set(APP_HW_TARGET                   XCORE-AI-EXPLORER) # This is the XTC tools supplied XN file for the XK_EVK_XU316
 
 set(APP_DEPENDENT_MODULES           "lib_board_support"
-                                    "lib_i2s")
+                                    "lib_i2s"
+                                    "lib_uart_c")
 
 set(APP_COMPILER_FLAGS              -O0
                                     -g
