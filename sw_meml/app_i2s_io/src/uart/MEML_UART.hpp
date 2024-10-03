@@ -6,13 +6,8 @@
 #include <array>
 #include <string>
 
-#define UART_STANDALONE 1
+#include "../chans_and_data.h"
 
-#if UART_STANDALONE
-const size_t button_nButtons = 3;
-const size_t joystick_nPots = 3;
-using num_t = float;
-#endif
 
 class MEML_UART {
  public:

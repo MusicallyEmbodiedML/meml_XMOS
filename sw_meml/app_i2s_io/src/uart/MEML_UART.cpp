@@ -1,5 +1,7 @@
 #include "MEML_UART.hpp"
 
+#include "../interface/interface.hpp"
+
 #include <string>
 #include <cstring>
 #include <cmath>
@@ -110,9 +112,7 @@ bool MEML_UART::_ParseJoystick(std::vector<std::string> &buffer)
         std::printf("UART- Wrong joystick value %s!\n", buffer[1].c_str());
         return false;
     }
-#if !(UART_STANDALONE)
     meml_interface->SetPot(static_cast<te_joystick_pot>(pot_index), pot_value);
-#endif
 
     return true;
 }
@@ -137,7 +137,6 @@ bool MEML_UART::_ParseButton(std::vector<std::string> &buffer)
     }
     bool btn_value_bool = !static_cast<bool>(btn_value);
 
-#if !(UART_STANDALONE)
     if (btn_index == 0) { // Toggle
         meml_interface->SetToggleButton(static_cast<te_button_idx>(btn_index), btn_value_bool);
     } else {  // Buttons
@@ -146,7 +145,6 @@ bool MEML_UART::_ParseButton(std::vector<std::string> &buffer)
             meml_interface->SetToggleButton(static_cast<te_button_idx>(btn_index), btn_value_bool);
         }
     }
-#endif
     button_states_[btn_index] = btn_value_bool;
 
     return true;

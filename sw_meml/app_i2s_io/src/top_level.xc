@@ -33,7 +33,15 @@ extern void uart_init();
 extern void uart_rx_task();
 // MLP tasks
 extern void mlp_init();
-extern void mlp_task();
+extern void mlp_inference_task(chanend interface_nn_joystick,
+                               chanend interface_fmsynth,
+                               chanend interface_nn_data,
+                               chanend interface_nn_train);
+// Interface
+extern void interface_init(chanend interface_nn_joystick,
+                           chanend interface_fmsynth,
+                           chanend interface_nn_data,
+                           chanend interface_nn_train);
 
 
 /**
@@ -99,21 +107,41 @@ void i2s_loopback(server i2s_frame_callback_if i_i2s, streaming chanend audio_in
 
 
 int main(void){
-    chan c;
+    // Inter-tile channels
+    chan i2s_remote;
+    chan interface_fmsynth;
     par{
         on tile[0]: {
+            // Tile 0 channels
+            chan interface_nn_joystick;
+            chan interface_nn_data;
+            chan interface_nn_train;
+
+            // Init tasks
             uart_init();
             mlp_init();
+            interface_init(
+                interface_nn_joystick,
+                interface_fmsynth,
+                interface_nn_data,
+                interface_nn_train
+            );
+            // Runtime tasks
             par {
-                tile_0_main(c);
+                tile_0_main(i2s_remote);
                 uart_rx_task();
-                mlp_task();
+                mlp_inference_task(
+                    interface_nn_joystick,
+                    interface_fmsynth,
+                    interface_nn_data,
+                    interface_nn_train
+                );
             }
         }
         on tile[1]: {
             interface i2s_frame_callback_if i_i2s;
             streaming chan audio_in, audio_out;
-            tile_1_main(c);
+            tile_1_main(i2s_remote);
             audio_app_init();
             par {
                 audio_loop(audio_in);

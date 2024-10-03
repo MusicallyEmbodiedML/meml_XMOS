@@ -9,6 +9,7 @@ extern "C" {
 }
 
 #include "MEML_UART.hpp"
+#include "../chans_and_data.h"
 
 static constexpr unsigned int kBaud_rate_ = 115200;
 
