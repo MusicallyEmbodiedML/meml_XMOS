@@ -23,11 +23,15 @@ on tile[1]: buffered out port:32 p_dac[NUM_I2S_LINES] =     {PORT_I2S_DAC_DATA};
 on tile[1]: buffered in port:32 p_adc[NUM_I2S_LINES] =      {PORT_I2S_ADC_DATA};
 on tile[1]: clock bclk =                                    XS1_CLKBLK_1;
 
-
+// I2S tasks
 extern void tile_0_main(chanend c);
 extern void tile_1_main(chanend c);
 extern void audio_loop(streaming chanend);
 extern void audio_app_init();
+// UART tasks
+extern void uart_init();
+extern void uart_rx_task();
+
 
 void i2s_loopback(server i2s_frame_callback_if i_i2s, streaming chanend audio_in)
 {
@@ -82,10 +86,17 @@ void i2s_loopback(server i2s_frame_callback_if i_i2s, streaming chanend audio_in
     }
 }
 
+
 int main(void){
     chan c;
     par{
-        on tile[0]: tile_0_main(c);
+        on tile[0]: {
+            uart_init();
+            par {
+                tile_0_main(c);
+                uart_rx_task();
+            }
+        }
         on tile[1]: {
             interface i2s_frame_callback_if i_i2s;
             streaming chan audio_in, audio_out;
