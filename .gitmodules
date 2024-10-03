@@ -1,3 +1,6 @@
 [submodule "lib_mlp/lib_mlp"]
 	path = lib_mlp/lib_mlp
 	url = git@github.com:MusicallyEmbodiedML/MLP_XMOS.git
+[submodule "lib_synth/lib_synth"]
+	path = lib_synth/lib_synth
+	url = git@github.com:MusicallyEmbodiedML/fmsynth.git

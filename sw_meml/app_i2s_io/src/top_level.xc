@@ -26,13 +26,15 @@ on tile[1]: clock bclk =                                    XS1_CLKBLK_1;
 // I2S tasks
 extern void tile_0_main(chanend c);
 extern void tile_1_main(chanend c);
+// Audio tasks
 extern void audio_loop(streaming chanend);
-extern void audio_app_init();
+extern void audio_app_init(float sample_rate);
+extern void audio_app_paramupdate(chanend fmsynth_paramupdate);
 // UART tasks
 extern void uart_init();
 extern void uart_rx_task();
 // MLP tasks
-extern void mlp_init();
+extern void mlp_init(chanend interface_fmsynth);
 extern void mlp_inference_task(chanend interface_nn_joystick,
                                chanend interface_fmsynth,
                                chanend interface_nn_data,
@@ -119,7 +121,7 @@ int main(void){
 
             // Init tasks
             uart_init();
-            mlp_init();
+            mlp_init(interface_fmsynth);
             interface_init(
                 interface_nn_joystick,
                 interface_fmsynth,
@@ -130,23 +132,18 @@ int main(void){
             par {
                 tile_0_main(i2s_remote);
                 uart_rx_task();
-                mlp_inference_task(
-                    interface_nn_joystick,
-                    interface_fmsynth,
-                    interface_nn_data,
-                    interface_nn_train
-                );
             }
         }
         on tile[1]: {
             interface i2s_frame_callback_if i_i2s;
             streaming chan audio_in, audio_out;
             tile_1_main(i2s_remote);
-            audio_app_init();
+            audio_app_init(SAMPLE_FREQUENCY);
             par {
                 audio_loop(audio_in);
                 i2s_loopback(i_i2s, audio_in);
                 i2s_frame_master(i_i2s, p_dac, NUM_I2S_LINES, p_adc, NUM_I2S_LINES, DATA_BITS, p_bclk, p_lrclk, p_mclk, bclk);
+                audio_app_paramupdate(interface_fmsynth);
             }
         }
     }

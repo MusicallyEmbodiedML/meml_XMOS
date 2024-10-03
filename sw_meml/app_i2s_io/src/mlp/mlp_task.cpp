@@ -11,10 +11,7 @@ extern "C" {
     #include <xcore/channel.h>
 }
 
-#define MLP_STANDALONE    1
-#if MLP_STANDALONE
-constexpr size_t kN_synthparams = 14;
-#endif
+#include "FMSynth.hpp"
 
 
 // MLP config constants
@@ -61,6 +58,12 @@ void Dataset::Train()
 
     std::printf("MLP- Feature size %d, label size %d.\n", dataset.first.size(), dataset.second.size());
     std::printf("MLP- Feature dim %d, label dim %d.\n", dataset.first[0].size(), dataset.second[0].size());
+    if (!dataset.first.size() || !dataset.second.size()) {
+        return;
+    }
+    if (!dataset.first[0].size() || !dataset.second[0].size()) {
+        return;
+    }
     std::printf("MLP- Training...\n");
     mlp_->Train(dataset,
               1.,
@@ -75,8 +78,9 @@ void Dataset::Train()
  * MLP TASK
  ******************************/
 
+chanend_t nn_paramupdate_ = 0;
 
-void mlp_init()
+void mlp_init(chanend_t nn_paramupdate)
 {
     mlp_ = new (mlp_mem_) MLP<float>(
         layers_nodes,
@@ -86,8 +90,33 @@ void mlp_init()
         constant_weight_init
     );
 
+    nn_paramupdate_ = nn_paramupdate;
+
     std::printf("MLP- Initialised.\n");
 }
+
+
+void mlp_inference_nochannel(ts_joystick_read joystick_read) {
+    // Instantiate data in/out
+    std::vector<num_t> input{
+        joystick_read.potX,
+        joystick_read.potY,
+        joystick_read.potRotate,
+        1.f  // bias
+    };
+    std::vector<num_t> output(kN_synthparams);
+    // Run model
+    mlp_->GetOutput(input, &output);
+
+    // Send result
+    std::printf("INTF- Sending paramupdate to FMsynth...\n");
+    chan_out_buf_byte(
+        nn_paramupdate_,
+        reinterpret_cast<uint8_t *>(output.data()),
+        sizeof(num_t) * kN_synthparams
+    );
+}
+
 
 void mlp_inference_task(chanend_t dispatcher_nn,
                         chanend_t nn_paramupdate,
@@ -98,14 +127,14 @@ void mlp_inference_task(chanend_t dispatcher_nn,
     std::unique_ptr<ts_joystick_read> joystick_read;
 
      while (true) {
-        //std::printf("NN- Waiting for data...\n");
+        std::printf("NN- Waiting for data from channel 0x%x...\n", dispatcher_nn);
         // Blocking acquisition of pot data from dispatcher_nn
         chan_in_buf_byte(
             dispatcher_nn,
             reinterpret_cast<uint8_t *>(joystick_read.get()),
             sizeof(ts_joystick_read)
         );
-        //std::printf("NN- Received joystick read in NN task.\n");
+        std::printf("NN- Received joystick read in NN task.\n");
 
         // Instantiate data in/out
         std::vector<num_t> input{
@@ -119,13 +148,11 @@ void mlp_inference_task(chanend_t dispatcher_nn,
         mlp_->GetOutput(input, &output);
 
         // Send result
-    #if !(MLP_STANDALONE)
         chan_out_buf_byte(
             nn_paramupdate,
             reinterpret_cast<uint8_t *>(output.data()),
             sizeof(num_t) * kN_synthparams
         );
-    #endif
 
     }  // while(true)
 }

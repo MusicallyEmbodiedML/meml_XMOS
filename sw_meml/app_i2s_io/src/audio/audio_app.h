@@ -10,8 +10,11 @@ extern "C" {
 #include <xcore/chanend.h>
 
 
-extern void audio_app_init();
+extern void audio_app_init(float sample_rate);
 extern void audio_loop(chanend_t i2s_audio_in);
+extern void audio_app_paramupdate(
+    chanend_t fmsynth_paramupdate
+);
 
 typedef float sample_t;
 

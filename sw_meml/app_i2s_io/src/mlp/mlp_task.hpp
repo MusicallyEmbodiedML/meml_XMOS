@@ -1,10 +1,12 @@
 #ifndef __MLP_TASK_HPP__
 #define __MLP_TASK_HPP__
 
+#include "../chans_and_data.h"
+
 extern "C" {
     #include <xcore/chanend.h>
 
-    void mlp_init();
+    void mlp_init(chanend_t nn_paramupdate);
 
     /**
      * @brief Task to handle pot position to FMsynth parameters.
@@ -18,6 +20,8 @@ extern "C" {
                 chanend_t nn_paramupdate,
                 chanend_t nn_data,
                 chanend_t nn_train);
+
+    void mlp_inference_nochannel(ts_joystick_read joystick_read);
 }  // extern "C"
 
 
@@ -28,8 +32,6 @@ class Dataset {
     static void Add(std::vector<float> &feature, std::vector<float> &label);
     static void Train();
 };
-
-void DebugDumpJSON();
 
 
 #endif  // __MLP_TASK_HPP__

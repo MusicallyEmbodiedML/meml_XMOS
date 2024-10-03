@@ -13,12 +13,7 @@ extern "C" {
 #include "../chans_and_data.h"
 #include "../mlp/mlp_task.hpp"
 
-#define INTERFACE_STANDALONE 1
-
-#if !(INTERFACE_STANDALONE)
-#include "fmsynth_wrapper.hpp"
 #include "FMSynth.hpp"
-#endif
 
 ///
 // C++ HELPER CLASSES
@@ -45,15 +40,16 @@ void MEMLInterface::SetPot(te_joystick_pot pot_n, num_t value)
 
    // If inference, send down to channel
    if (mode_ == mode_inference) {
-      //std::printf("INTF- Sending joystick state...\n");
-#if !(INTERFACE_STANDALONE)
+#if 0
+      std::printf("INTF- Sending joystick state down channel 0x%x...\n", interface_nn_joystick_);
       chan_out_buf_byte(
          interface_nn_joystick_,
          reinterpret_cast<unsigned char *>(joystick_current_.as_array),
          sizeof(ts_joystick_read)
       );
+      std::printf("INTF- Sent joystick state.\n");
 #endif
-      //std::printf("INTF- Sent joystick state.\n");
+      mlp_inference_nochannel(joystick_current_.as_struct);
    }
 }
 
@@ -66,7 +62,7 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, bool state)
             Dataset::Train();
          #if !(INTERFACE_STANDALONE)
             // Print debug model
-            DebugDumpJSON();
+            //DebugDumpJSON();
          #endif
          }
          mode_ = static_cast<te_nn_mode>(state);
@@ -78,7 +74,6 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, bool state)
 
          if (mode_ == mode_training) {
             // Generate random params
-#if !(INTERFACE_STANDALONE)
             std::vector<float> rand_params(kN_synthparams);
             FMSynth::GenParams(rand_params);
 
@@ -91,7 +86,6 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, bool state)
 
             // Also save them in an intermediate space
             current_fmsynth_params_ = std::move(rand_params);
-#endif
             std::printf("INTF- Random params\n");
          }
 
