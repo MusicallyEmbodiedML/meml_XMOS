@@ -4,8 +4,7 @@ project(app_i2s_io)
 
 set(APP_HW_TARGET                   ${CMAKE_CURRENT_LIST_DIR}/XCORE-AI-EXPLORER_meml.xn)
 
-set(APP_DEPENDENT_MODULES           "lib_board_support"
-                                    "lib_i2s")
+set(APP_DEPENDENT_MODULES           "lib_board_support")
 
 set(APP_COMPILER_FLAGS              -O0
                                     -g

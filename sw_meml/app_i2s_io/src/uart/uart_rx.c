@@ -49,7 +49,7 @@ void uart_rx_init(
     #if UART_RX_DEBUG
     port_enable(p_dbg);
     #endif
-#if 0
+#if 1
     uart->rx_port = rx_port;
     uart->bit_time_ticks = XS1_TIMER_HZ / baud_rate;
     uart->next_event_time_ticks = 0;
@@ -109,25 +109,6 @@ void uart_rx_init(
 HIL_UART_RX_CALLBACK_ATTR
 void uart_rx_error_callback(uart_callback_code_t callback_code, void *app_data){
     printf("UART- uart_rx_error: 0x%x\n", callback_code);
-}
-
-static hwtimer_t tmr;
-
-void uart_rx_init_meml(uart_rx_t *uart) {
-    uart_rx_init(
-        uart,
-        PORT_UART_RX,  //X0D00,
-        115200,
-        8,
-        UART_PARITY_NONE,
-        1,
-        tmr,
-        NULL, // No buffer
-        0,
-        NULL, // No rx complete callback
-        uart_rx_error_callback,
-        (void *)uart
-        );
 }
 
 __attribute__((always_inline))
@@ -203,7 +184,9 @@ static inline void uart_rx_handle_event(uart_rx_t *uart){
             uint32_t pin = port_in(uart->rx_port) & 0x1;
             if(pin != 0){
                 uart->cb_code = UART_START_BIT_ERROR;
-                (*uart->uart_rx_error_callback_arg)(uart->cb_code, uart->app_data);
+                if (uart->uart_rx_error_callback_arg != NULL) {
+                    (*uart->uart_rx_error_callback_arg)(uart->cb_code, uart->app_data);
+                }
             }
             uart->state = UART_DATA;
             uart->uart_data = 0;
@@ -251,7 +234,9 @@ static inline void uart_rx_handle_event(uart_rx_t *uart){
             parity &= 1;
             if(pin != parity){
                 uart->cb_code = UART_PARITY_ERROR;
-                (*uart->uart_rx_error_callback_arg)(uart->cb_code, uart->app_data);
+                if (uart->uart_rx_error_callback_arg != NULL) {
+                    (*uart->uart_rx_error_callback_arg)(uart->cb_code, uart->app_data);
+                }
             }
             uart->state = UART_STOP;
             uart->next_event_time_ticks += uart->bit_time_ticks;
@@ -269,7 +254,9 @@ static inline void uart_rx_handle_event(uart_rx_t *uart){
             uint32_t pin = port_in(uart->rx_port) & 0x1;
             if(pin != 1){
                 uart->cb_code = UART_FRAMING_ERROR;
-                (*uart->uart_rx_error_callback_arg)(uart->cb_code, uart->app_data);
+                if (uart->uart_rx_error_callback_arg) {
+                    (*uart->uart_rx_error_callback_arg)(uart->cb_code, uart->app_data);
+                }
             } else {
                 uart->cb_code = UART_RX_COMPLETE;
             }
@@ -280,7 +267,9 @@ static inline void uart_rx_handle_event(uart_rx_t *uart){
                 uart_buffer_error_t err = push_byte_into_buffer(&uart->buffer, uart->uart_data);
                 if(err == UART_BUFFER_FULL){
                     uart->cb_code = UART_OVERRUN_ERROR;
-                    (*uart->uart_rx_error_callback_arg)(uart->cb_code, uart->app_data);
+                    if (uart->uart_rx_error_callback_arg != NULL) {
+                        (*uart->uart_rx_error_callback_arg)(uart->cb_code, uart->app_data);
+                    }
                 }
                 hwtimer_clear_trigger_time(uart->tmr);
                 triggerable_set_trigger_enabled(uart->tmr, 0);
@@ -312,7 +301,9 @@ uint8_t uart_rx(uart_rx_t *uart){
         uart_buffer_error_t err = pop_byte_from_buffer(&uart->buffer, &rx_data);
         if(err == UART_BUFFER_EMPTY){
             uart->cb_code = UART_UNDERRUN_ERROR;
-            (*uart->uart_rx_error_callback_arg)(uart->cb_code, uart->app_data);
+            if (uart->uart_rx_error_callback_arg != NULL) {
+                (*uart->uart_rx_error_callback_arg)(uart->cb_code, uart->app_data);
+            }
         }
         return rx_data;
     } else {

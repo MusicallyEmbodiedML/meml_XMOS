@@ -269,8 +269,6 @@ void uart_rx_init(
         void *app_data
         );
 
-void uart_rx_init_meml(uart_rx_t *uart);
-
 /**
  * Initializes a UART Rx I/O interface. This API is fixed to blocking mode
  * which is where the call to uart_rx returns as soon as the stop bit has

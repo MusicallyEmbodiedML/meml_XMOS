@@ -242,7 +242,7 @@ bool MEML_UART::ParseAndSend(std::vector<std::string> &buffer)
 ///
 // C WRAPPER TASK
 ///
-#pragma stackfunction 32
+#pragma stackfunction 1000
 void uart_rx_task()
 {
     auto uart_if = std::make_unique<MEML_UART>();
