@@ -14,7 +14,8 @@
 #define XMOS_I2S_MASTER         1
 #endif
 
-
+// UART resources
+on tile[0] : port p_uart_rx = PORT_UART_RX;
 // I2S resources
 on tile[1]: in port p_mclk =                                PORT_MCLK_IN;
 on tile[1]: buffered out port:32 p_lrclk =                  PORT_I2S_LRCLK;
@@ -28,6 +29,8 @@ extern void tile_0_main(chanend c);
 extern void tile_1_main(chanend c);
 extern void audio_loop(streaming chanend);
 extern void audio_app_init();
+extern void uart_rx_task();
+extern void uart_init_task();
 
 void i2s_loopback(server i2s_frame_callback_if i_i2s, streaming chanend audio_in)
 {
@@ -84,8 +87,15 @@ void i2s_loopback(server i2s_frame_callback_if i_i2s, streaming chanend audio_in
 
 int main(void){
     chan c;
+
     par{
-        on tile[0]: tile_0_main(c);
+        on tile[0]: {
+            uart_init_task();
+            par {
+                tile_0_main(c);
+                uart_rx_task();
+            }
+        }
         on tile[1]: {
             interface i2s_frame_callback_if i_i2s;
             streaming chan audio_in, audio_out;
