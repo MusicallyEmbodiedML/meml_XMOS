@@ -31,7 +31,14 @@ extern void audio_app_init();
 // UART tasks
 extern void uart_init();
 extern void uart_rx_task();
+// MLP tasks
+extern void mlp_init();
+extern void mlp_task();
 
+
+/**
+ * I2S Loopback ISR
+ */
 
 void i2s_loopback(server i2s_frame_callback_if i_i2s, streaming chanend audio_in)
 {
@@ -86,15 +93,21 @@ void i2s_loopback(server i2s_frame_callback_if i_i2s, streaming chanend audio_in
     }
 }
 
+/**
+ * MAIN routine
+ */
+
 
 int main(void){
     chan c;
     par{
         on tile[0]: {
             uart_init();
+            mlp_init();
             par {
                 tile_0_main(c);
                 uart_rx_task();
+                mlp_task();
             }
         }
         on tile[1]: {

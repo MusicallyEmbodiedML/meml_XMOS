@@ -1,0 +1,3 @@
+[submodule "lib_mlp/lib_mlp"]
+	path = lib_mlp/lib_mlp
+	url = git@github.com:MusicallyEmbodiedML/MLP_XMOS.git

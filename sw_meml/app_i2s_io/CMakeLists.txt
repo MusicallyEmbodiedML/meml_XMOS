@@ -6,7 +6,8 @@ set(APP_HW_TARGET                   "XCORE-AI-EXPLORER_meml.xn") # This is the X
 
 set(APP_DEPENDENT_MODULES           "lib_board_support"
                                     "lib_i2s"
-                                    "lib_uart_c")
+                                    "lib_uart_c"
+                                    "lib_mlp")
 
 set(APP_COMPILER_FLAGS              -O0
                                     -g
