@@ -14,6 +14,7 @@ build
 bin
 *.a
 *.xe
+.vscode
 /lib_board_support
 /lib_i2c
 /lib_i2s

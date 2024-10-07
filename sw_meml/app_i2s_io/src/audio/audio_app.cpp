@@ -130,7 +130,7 @@ void audio_app_paramupdate(chanend_t fmsynth_paramupdate)
 
         if (fmsyn != nullptr) {
             fmsyn->mapParameters(params);
-            std::printf("FMSynth- Params are mapped.\n");
+            //std::printf("FMSynth- Params are mapped.\n");
         }
 #endif
     }

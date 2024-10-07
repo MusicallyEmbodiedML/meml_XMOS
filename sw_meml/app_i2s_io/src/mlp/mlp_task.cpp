@@ -49,6 +49,7 @@ void Dataset::Add(std::vector<float> &feature, std::vector<float> &label)
     auto label_local = label;
     features.push_back(feature_local);
     labels.push_back(label_local);
+    std::printf("MLP- Added example.\n");
     std::printf("MLP- Feature size %d, label size %d.\n", features.size(), labels.size());
 }
 
@@ -57,10 +58,10 @@ void Dataset::Train()
     MLP<float>::training_pair_t dataset(features, labels);
 
     std::printf("MLP- Feature size %d, label size %d.\n", dataset.first.size(), dataset.second.size());
-    std::printf("MLP- Feature dim %d, label dim %d.\n", dataset.first[0].size(), dataset.second[0].size());
     if (!dataset.first.size() || !dataset.second.size()) {
         return;
     }
+    std::printf("MLP- Feature dim %d, label dim %d.\n", dataset.first[0].size(), dataset.second[0].size());
     if (!dataset.first[0].size() || !dataset.second[0].size()) {
         return;
     }
@@ -109,7 +110,7 @@ void mlp_inference_nochannel(ts_joystick_read joystick_read) {
     mlp_->GetOutput(input, &output);
 
     // Send result
-    std::printf("INTF- Sending paramupdate to FMsynth...\n");
+    //std::printf("INTF- Sending paramupdate to FMsynth...\n");
     chan_out_buf_byte(
         nn_paramupdate_,
         reinterpret_cast<uint8_t *>(output.data()),
