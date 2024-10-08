@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 #include <xcore/chanend.h>
-#include <ccore/port.h>
+#include <xcore/port.h>
 
 extern void audio_app_init(float sample_rate, port_t p1, port_t p2);
 extern void audio_loop(chanend_t i2s_audio_in);
