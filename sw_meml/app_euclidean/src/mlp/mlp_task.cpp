@@ -1,6 +1,7 @@
 #include "mlp_task.hpp"
 #include "MLP.h"
 #include "../chans_and_data.h"
+#include "../audio/audio_app.h"
 
 #include <memory>
 #include <algorithm>
@@ -11,15 +12,13 @@ extern "C" {
     #include <xcore/channel.h>
 }
 
-#include "FMSynth.hpp"
-
 
 // MLP config constants
 static const unsigned int kBias = 1;
 static const std::vector<size_t> layers_nodes = {
     sizeof(ts_joystick_read)/sizeof(float) + kBias,
     10, 10, 14,
-    kN_synthparams
+    kN_gen_params
 };
 static const std::vector<std::string> layers_activfuncs = {
     "relu", "relu", "relu", "sigmoid"
@@ -105,7 +104,7 @@ void mlp_inference_nochannel(ts_joystick_read joystick_read) {
         joystick_read.potRotate,
         1.f  // bias
     };
-    std::vector<num_t> output(kN_synthparams);
+    std::vector<num_t> output(kN_gen_params);
     // Run model
     mlp_->GetOutput(input, &output);
 
@@ -114,7 +113,7 @@ void mlp_inference_nochannel(ts_joystick_read joystick_read) {
     chan_out_buf_byte(
         nn_paramupdate_,
         reinterpret_cast<uint8_t *>(output.data()),
-        sizeof(num_t) * kN_synthparams
+        sizeof(num_t) * kN_gen_params
     );
 }
 
@@ -144,7 +143,7 @@ void mlp_inference_task(chanend_t dispatcher_nn,
             joystick_read->potRotate,
             1.f  // bias
         };
-        std::vector<num_t> output(kN_synthparams);
+        std::vector<num_t> output(kN_gen_params);
         // Run model
         mlp_->GetOutput(input, &output);
 
@@ -152,7 +151,7 @@ void mlp_inference_task(chanend_t dispatcher_nn,
         chan_out_buf_byte(
             nn_paramupdate,
             reinterpret_cast<uint8_t *>(output.data()),
-            sizeof(num_t) * kN_synthparams
+            sizeof(num_t) * kN_gen_params
         );
 
     }  // while(true)

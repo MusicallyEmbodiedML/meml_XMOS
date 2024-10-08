@@ -20,7 +20,12 @@ typedef float sample_t;
 
 #if __cplusplus
 }
-#endif
+
+#include "EuclideanSeq.hpp"
+const size_t kNGenerators = 2;
+const size_t kN_gen_params = kNGenerators * EuclideanSeq::n_params;
+
+#endif  // __cplusplus
 
 #endif  // __XC__
 

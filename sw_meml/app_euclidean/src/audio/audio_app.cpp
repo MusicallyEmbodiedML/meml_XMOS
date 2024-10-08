@@ -8,14 +8,13 @@ extern "C" {
     #include <xcore/channel.h>
     #include <xcore/channel_streaming.h>
     #include <xscope.h>
+    #include "xassert.h"
 }
 
 #include "../chans_and_data.h"
 #include "audio_buffers.h"
 // Include audio components
-// #include "FMSynth.hpp"
 #include "Phasor.hpp"
-#include "EuclideanSeq.hpp"
 
 
 static port_t port1, port2;
@@ -70,8 +69,6 @@ static std::vector< std::vector<sample_t> > sample_buffer;
 //FMSynth *fmsyn = nullptr;
 //static char fmsyn_mem_[sizeof(FMSynth)];
 
-static const size_t kNGenerators = 1;
-
 static EuclideanSeq *seq[kNGenerators] = { nullptr };
 static char seq_mem_[sizeof(EuclideanSeq) * kNGenerators];
 
@@ -95,7 +92,7 @@ void audio_app_init(float sample_rate, port_t p1, port_t p2)
     // Component inits
     // fmsyn = new (fmsyn_mem_) FMSynth(sample_rate);
     ph = new (ph_mem_) Phasor(sample_rate);
-    ph->SetF0(20);
+    ph->SetF0(0.5);
 
     // Generators
     EuclideanSeq::params seq_params[kNGenerators] = {
@@ -105,12 +102,12 @@ void audio_app_init(float sample_rate, port_t p1, port_t p2)
             0,  // offset_n
             1,  // offset_d
         },
-        /*{
+        {
             7, // n
             4,  // k
             3,  // offset_n
             8,  // offset_d
-        }*/
+        }
     };
     for (unsigned int n = 0; n < kNGenerators; n++) {
         seq[n] = new (seq_mem_ + n * sizeof(EuclideanSeq)) EuclideanSeq();
@@ -185,22 +182,25 @@ void audio_loop(chanend_t i2s_audio_in)
 
 void audio_app_paramupdate(chanend_t fmsynth_paramupdate)
 {
-    //std::vector<num_t> params(kN_synthparams);
+    std::vector<num_t> params(kN_gen_params);
 
     while (true) {
-#if 0
+#if 1
         chan_in_buf_byte(
             fmsynth_paramupdate,
             reinterpret_cast<unsigned char *>(params.data()),
-            sizeof(num_t) * kN_synthparams
+            sizeof(num_t) * kN_gen_params
         );
 
-        //debug_printf("FMSynth- Something is received.\n");
+        for (unsigned int n_gen = 0; n_gen < kNGenerators; n_gen++) {
+            std::vector<num_t>::iterator start = params.begin() + n_gen*EuclideanSeq::n_params;
+            std::vector<num_t>::iterator end = start + EuclideanSeq::n_params;
+            std::vector<num_t> single_gen_params(start, end);
+            assert(single_gen_params.size() == EuclideanSeq::n_params);
 
-        if (fmsyn != nullptr) {
-            fmsyn->mapParameters(params);
-            //std::printf("FMSynth- Params are mapped.\n");
+            seq[n_gen]->MapNNParams(single_gen_params);
         }
+
 #endif
     }
 }
