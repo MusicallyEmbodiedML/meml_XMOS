@@ -21,9 +21,9 @@
     <!-- From the target code, call: xscope_int(PROBE_NAME, value); -->
     <Probe name="Audio Timing" type="CONTINUOUS" datatype="UINT" units="Value" enabled="true"/>
     <!--
-    <Probe name="Audio Probe 1" type="CONTINUOUS" datatype="FLOAT" units="Value" enabled="true"/>
-    <Probe name="Audio Probe 2" type="CONTINUOUS" datatype="FLOAT" units="Value" enabled="true"/>
-    <Probe name="Audio Probe 3" type="CONTINUOUS" datatype="FLOAT" units="Value" enabled="true"/>
+    <Probe name="Phasor" type="CONTINUOUS" datatype="FLOAT" units="Value" enabled="true"/>
+    <Probe name="Phasor (offset)" type="CONTINUOUS" datatype="FLOAT" units="Value" enabled="true"/>
+    <Probe name="Index" type="CONTINUOUS" datatype="FLOAT" units="Value" enabled="true"/>
+    <Probe name="GPIO out" type="CONTINUOUS" datatype="INT" units="Value" enabled="true"/>
     -->
-    
 </xSCOPEconfig>

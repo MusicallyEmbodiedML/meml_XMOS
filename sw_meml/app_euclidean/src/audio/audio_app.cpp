@@ -14,6 +14,8 @@ extern "C" {
 #include "audio_buffers.h"
 // Include audio components
 // #include "FMSynth.hpp"
+#include "Phasor.hpp"
+#include "EuclideanSeq.hpp"
 
 
 static port_t port1, port2;
@@ -65,9 +67,16 @@ static std::vector< std::vector<sample_t> > sample_buffer;
  * OBJECTS THAT MAKE SOUND
  **************************/
 
-FMSynth *fmsyn = nullptr;
-static char fmsyn_mem_[sizeof(FMSynth)];
+//FMSynth *fmsyn = nullptr;
+//static char fmsyn_mem_[sizeof(FMSynth)];
 
+static const size_t kNGenerators = 1;
+
+static EuclideanSeq *seq[kNGenerators] = { nullptr };
+static char seq_mem_[sizeof(EuclideanSeq) * kNGenerators];
+
+static Phasor *ph = nullptr;
+static char ph_mem_[sizeof(Phasor)];
 
 /**************************
  * MAIN ROUTINES
@@ -81,15 +90,40 @@ void audio_app_init(float sample_rate, port_t p1, port_t p2)
         sample_buffer[ch].resize(kAudioSamples, 0);
     }
 
+    port_enable(p1);
+
     // Component inits
     // fmsyn = new (fmsyn_mem_) FMSynth(sample_rate);
+    ph = new (ph_mem_) Phasor(sample_rate);
+    ph->SetF0(20);
+
+    // Generators
+    EuclideanSeq::params seq_params[kNGenerators] = {
+        {
+            11, // n
+            7,  // k
+            0,  // offset_n
+            1,  // offset_d
+        },
+        /*{
+            7, // n
+            4,  // k
+            3,  // offset_n
+            8,  // offset_d
+        }*/
+    };
+    for (unsigned int n = 0; n < kNGenerators; n++) {
+        seq[n] = new (seq_mem_ + n * sizeof(EuclideanSeq)) EuclideanSeq();
+        seq[n]->SetParams(seq_params[n]);
+    }
+
+    // Ports
     port1 = p1;
     port2 = p2;
 }
 
+static unsigned int counter = 0;
 
-static double t=0;
-const size_t nGenerators;
 void audio_loop(chanend_t i2s_audio_in)
 {
     while (1) {
@@ -98,38 +132,47 @@ void audio_loop(chanend_t i2s_audio_in)
         audio_buffer_ptr_t audio_buf = audio_buffer_ptrs[audio_buf_idx];
         to_float_buf(audio_buf, sample_buffer);
 
+        //port_out(port1, 0xf);
+        //port_out(port2, 0x1);
+
         // Floating-point processing here
 
         for (unsigned int smp = 0; smp < kAudioSamples; smp++) {
-            float y;
-            if (fmsyn != nullptr) {
-                // y = fmsyn->process();
-                for(size_t i_generator=0; i_generator < n_generators; i_generator++) {
-                    bool euclideanSig = 0; //placeholder, get result from a generator
-                    if (i_generator == 7) {
-                        port2Out = euclideanSig;
+
+            if (counter++ >= 48000) {
+                std::printf(".\n");
+                counter = 0;
+            }
+            float phasor = ph->Process();
+            //xscope_float(1, phasor);
+
+            // Generate     
+            for(size_t i_generator=0; i_generator < kNGenerators; i_generator++) {
+                bool euclideanSig = seq[i_generator]->Process(phasor);
+                // if (i_generator == 0) {
+                //     xscope_float(2, seq[0]->Probe(0));
+                //     xscope_float(3, seq[0]->Probe(1));
+                //     xscope_int(4, euclideanSig);
+                // }
+
+                // Port outs
+                if (i_generator == 7) {
+                    port2Out = euclideanSig;
+                }else{
+                    if (euclideanSig) {
+                        //on
+                        port1Out |= (0x1 << i_generator);
                     }else{
-                        if (euclideanSig) {
-                            //on
-                            port1Out |= (0x1 << i_generator);
-                        }else{
-                            //off
-                            port1Out &= (~0x1 << i_generator);
-                        }
+                        //off
+                        port1Out &= (~(0x1 << i_generator));
                     }
                 }
-                //comment
+
+                // Port output
                 port_out(port1, port1Out);
                 port_out(port2, port2Out);
 
-            } else {
-                y = 0;
             }
-            for(unsigned int ch = 0; ch < kAudioChannels; ch++) {
-                sample_buffer[ch][smp] = y;
-            //if (ch == 0) xscope_float(1, sample_buffer[ch][smp]);
-            }
-            t++;
         }
 
 
@@ -142,10 +185,10 @@ void audio_loop(chanend_t i2s_audio_in)
 
 void audio_app_paramupdate(chanend_t fmsynth_paramupdate)
 {
-    std::vector<num_t> params(kN_synthparams);
+    //std::vector<num_t> params(kN_synthparams);
 
     while (true) {
-#if 1
+#if 0
         chan_in_buf_byte(
             fmsynth_paramupdate,
             reinterpret_cast<unsigned char *>(params.data()),
