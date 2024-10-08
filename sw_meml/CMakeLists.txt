@@ -3,3 +3,4 @@ include($ENV{XMOS_CMAKE_PATH}/xcommon.cmake)
 project(sw_meml)
 
 add_subdirectory(app_i2s_io)
+add_subdirectory(app_euclidean)
