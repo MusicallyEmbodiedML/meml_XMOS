@@ -8,12 +8,12 @@ extern "C" {
 #include <string>
 #include <utility>
 #include <cstdio>
+#include <cstdlib>
 
 // Internal C++ includes
 #include "../chans_and_data.h"
 #include "../mlp/mlp_task.hpp"
-
-#include "FMSynth.hpp"
+#include "../audio/audio_app.h"
 
 ///
 // C++ HELPER CLASSES
@@ -53,6 +53,16 @@ void MEMLInterface::SetPot(te_joystick_pot pot_n, num_t value)
    }
 }
 
+
+static void GenParams_(std::vector<float> &param_vector, size_t how_many)
+{
+    static constexpr float rand_scale = 1.f / static_cast<float>(RAND_MAX);
+    for(size_t i=0; i < how_many; i++) {
+        param_vector[i] = std::rand() * rand_scale;
+    }
+}
+
+
 void MEMLInterface::SetToggleButton(te_button_idx button_n, bool state)
 {
    switch(button_n) {
@@ -74,14 +84,14 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, bool state)
 
          if (mode_ == mode_training) {
             // Generate random params
-            std::vector<float> rand_params(kN_synthparams);
-            FMSynth::GenParams(rand_params);
+            std::vector<float> rand_params(kN_gen_params);
+            GenParams_(rand_params, kN_gen_params);
 
             // Send them down to fmsynth
             chan_out_buf_byte(
                interface_fmsynth_,
                reinterpret_cast<uint8_t *>(rand_params.data()),
-               sizeof(num_t) * kN_synthparams
+               sizeof(num_t) * kN_gen_params
             );
 
             // Also save them in an intermediate space
