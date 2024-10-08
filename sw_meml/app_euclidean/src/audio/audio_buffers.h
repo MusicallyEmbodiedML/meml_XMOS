@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #define kAudioChannels    2
-#define kAudioSamples    64
+#define kAudioSamples    1
 #define kAudioBufferLength    (kAudioChannels*kAudioSamples)
 
 #include <stdint.h>

@@ -15,7 +15,7 @@
 #endif
 
 //GPIO for pulse generators
-on tile[1]: out port:8 p_pulse1 =   XS1_PORT_8A;
+on tile[1]: out port p_pulse1 =   XS1_PORT_4B;
 on tile[1]: out port p_pulse2 =   XS1_PORT_1M;
 
 
@@ -32,7 +32,7 @@ extern void tile_0_main(chanend c);
 extern void tile_1_main(chanend c);
 // Audio tasks
 extern void audio_loop(streaming chanend);
-extern void audio_app_init(float sample_rate);
+extern void audio_app_init(float sample_rate, out port p1, out port p2);
 extern void audio_app_paramupdate(chanend fmsynth_paramupdate);
 // UART tasks
 extern void uart_init();
@@ -142,7 +142,7 @@ int main(void){
             interface i2s_frame_callback_if i_i2s;
             streaming chan audio_in, audio_out;
             tile_1_main(i2s_remote);
-            audio_app_init(SAMPLE_FREQUENCY);
+            audio_app_init(SAMPLE_FREQUENCY, p_pulse1, p_pulse2);
             par {
                 audio_loop(audio_in);
                 i2s_loopback(i_i2s, audio_in);
