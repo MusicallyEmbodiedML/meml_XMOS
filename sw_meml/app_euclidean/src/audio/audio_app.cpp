@@ -118,8 +118,10 @@ void audio_loop(chanend_t i2s_audio_in)
                         }
                     }
                 }
+                //comment
                 port_out(port1, port1Out);
                 port_out(port2, port2Out);
+
             } else {
                 y = 0;
             }
