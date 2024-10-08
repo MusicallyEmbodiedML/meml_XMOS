@@ -74,7 +74,7 @@ static char fmsyn_mem_[sizeof(FMSynth)];
  **************************/
 
 
-void audio_app_init(float sample_rate, port)_t p1, port_t p2)
+void audio_app_init(float sample_rate, port_t p1, port_t p2)
 {
     sample_buffer.resize(kAudioChannels);
     for (unsigned int ch = 0; ch < kAudioChannels; ch++) {

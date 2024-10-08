@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 include($ENV{XMOS_CMAKE_PATH}/xcommon.cmake)
-project(app_i2s_io)
+project(app_euclidean)
 
 set(APP_HW_TARGET                   "XCORE-AI-EXPLORER_meml.xn") # This is the XTC tools supplied XN file for the XK_EVK_XU316
 
