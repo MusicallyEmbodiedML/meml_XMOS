@@ -20,12 +20,10 @@ extern "C" {
 // C++ HELPER CLASSES
 ///
 
-MEMLInterface::MEMLInterface(chanend_t interface_nn_joystick,
-                             chanend_t interface_fmsynth,
+MEMLInterface::MEMLInterface(chanend_t interface_fmsynth,
                              size_t joystick_gridsize) :
       mode_(mode_inference),
       joystick_current_({ { 0.5, 0.5, 0.5 } }),
-      interface_nn_joystick_(interface_nn_joystick),
       interface_fmsynth_(interface_fmsynth),
       grid_size_(joystick_gridsize)
 {
@@ -55,15 +53,6 @@ void MEMLInterface::SetPot(te_joystick_pot pot_n, num_t value)
 
    // If inference, send down to channel
    if (mode_ == mode_inference) {
-#if 0
-      std::printf("INTF- Sending joystick state down channel 0x%x...\n", interface_nn_joystick_);
-      chan_out_buf_byte(
-         interface_nn_joystick_,
-         reinterpret_cast<unsigned char *>(joystick_current_.as_array),
-         sizeof(ts_joystick_read)
-      );
-      std::printf("INTF- Sent joystick state.\n");
-#endif
       mlp_inference_nochannel(joystick_current_.as_struct);
    }
 }
@@ -170,13 +159,9 @@ static char meml_interface_mem_[sizeof(MEMLInterface)];
 MEMLInterface *meml_interface = nullptr;
 
 
-void interface_init(chanend_t interface_nn_joystick,
-                    chanend_t interface_fmsynth,
-                    chanend_t interface_nn_data,
-                    chanend_t interface_nn_train)
+void interface_init(chanend_t interface_fmsynth)
 {
    meml_interface = new (meml_interface_mem_) MEMLInterface(
-   interface_nn_joystick,
    interface_fmsynth,
    6
    );
