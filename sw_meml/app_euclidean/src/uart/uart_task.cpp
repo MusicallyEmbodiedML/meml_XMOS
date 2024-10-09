@@ -58,9 +58,9 @@ void uart_rx_task()
     printf("UART- Listening...\n");
     while (true) {
         char rx = uart_rx(&uart_rx_ctx_);
-        if (rx) {
-            printf("%c", rx);
-        }
+        // if (rx) {
+        //     printf("%c", rx);
+        // }
         // Process characters from the UART interface
         meml_uart_.Process(rx);
 

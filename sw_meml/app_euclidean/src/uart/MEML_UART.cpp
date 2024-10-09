@@ -157,9 +157,10 @@ bool MEML_UART::_ParsePulse(std::vector<std::string> &buffer)
         return false;
     }
 
-    std::string pulse_string = buffer[2];
-    float pulse_float = std::strtof(pulse_string.c_str(), nullptr);
-    std::printf("UART- Pulse %f microseconds\n", pulse_float);
+    std::string pulse_string = buffer[1];
+    int pulse_int = std::atoi(pulse_string.c_str());
+    //std::printf("UART- Pulse %d (%s) microseconds\n", pulse_int, pulse_string.c_str());
+    meml_interface->SetPulse(pulse_int);
 
     return true;
 }
@@ -185,7 +186,7 @@ bool MEML_UART::ParseAndSend(std::vector<std::string> &buffer)
             _ParsePulse(payload);
         } break;
         default: {
-            std::printf("UART- message type %c unknown", switch_token);
+            //std::printf("UART- message type %c unknown", switch_token);
             return false;
         }
     }
