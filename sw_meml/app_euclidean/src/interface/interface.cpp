@@ -21,21 +21,25 @@ extern "C" {
 ///
 
 MEMLInterface::MEMLInterface(chanend_t interface_fmsynth,
+                             chanend_t interface_pulse,
                              size_t joystick_gridsize) :
       mode_(mode_inference),
       joystick_current_({ { 0.5, 0.5, 0.5 } }),
       interface_fmsynth_(interface_fmsynth),
+      interface_pulse_(interface_pulse),
       grid_size_(joystick_gridsize)
 {
-    // Linspace on grid_linspace_
-    float spacing = 1.f / joystick_gridsize;
-    grid_linspace_.reserve(grid_size_ + 1);
-    std::printf("INTF- Discretisation linspace: [");
-    for (float n = 0; n <= 1.; n += spacing) {
-        grid_linspace_.push_back(n);
-        std::printf("%f, ", n);
+    if (joystick_gridsize) {
+        // Linspace on grid_linspace_
+        float spacing = 1.f / joystick_gridsize;
+        grid_linspace_.reserve(grid_size_ + 1);
+        std::printf("INTF- Discretisation linspace: [");
+        for (float n = 0; n <= 1.; n += spacing) {
+            grid_linspace_.push_back(n);
+            std::printf("%f, ", n);
+        }
+        std::printf("], grid_size=%d", grid_size_);
     }
-    std::printf("], grid_size=%d", grid_size_);
 }
 
 void MEMLInterface::SetPot(te_joystick_pot pot_n, num_t value)
@@ -48,8 +52,10 @@ void MEMLInterface::SetPot(te_joystick_pot pot_n, num_t value)
    }
    joystick_current_.as_array[pot_n] = value;
 
-   // Discretise values
-   Discretise_(joystick_current_.as_struct);
+    if (grid_size_) {
+        // Discretise values
+        Discretise_(joystick_current_.as_struct);
+    }
 
    // If inference, send down to channel
    if (mode_ == mode_inference) {
@@ -57,6 +63,10 @@ void MEMLInterface::SetPot(te_joystick_pot pot_n, num_t value)
    }
 }
 
+void MEMLInterface::SetPulse(int32_t pulse)
+{
+    chan_out_word(interface_pulse_, pulse);
+}
 
 static void GenParams_(std::vector<float> &param_vector, size_t how_many)
 {
@@ -159,10 +169,12 @@ static char meml_interface_mem_[sizeof(MEMLInterface)];
 MEMLInterface *meml_interface = nullptr;
 
 
-void interface_init(chanend_t interface_fmsynth)
+void interface_init(chanend_t interface_fmsynth,
+    chanend_t interface_pulse)
 {
-   meml_interface = new (meml_interface_mem_) MEMLInterface(
-   interface_fmsynth,
-   6
-   );
+    meml_interface = new (meml_interface_mem_) MEMLInterface(
+        interface_fmsynth,
+        interface_pulse,
+        0
+    );
 }

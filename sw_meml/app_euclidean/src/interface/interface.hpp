@@ -11,7 +11,8 @@ extern "C" {
 
 
 void interface_init(
-    chanend_t interface_fmsynth);
+    chanend_t interface_fmsynth,
+    chanend_t interface_pulse);
 
 }  // extern "C"
 
@@ -20,14 +21,17 @@ void interface_init(
 ///
 
 #include "../chans_and_data.h"
+#include <cstdint>
 
 class MEMLInterface {
  public:
 
     MEMLInterface(chanend_t interface_fmsynth,
+                  chanend_t interface_pulse,
                   size_t joystick_gridsize);
     void SetPot(te_joystick_pot pot_n, num_t value);
     void SetToggleButton(te_button_idx button_n, bool state);
+    void SetPulse(int32_t pulse);
 
  protected:
 
@@ -41,6 +45,7 @@ class MEMLInterface {
     // Channels for outside comms
     //chanend_t interface_nn_joystick_;
     chanend_t interface_fmsynth_;
+    chanend_t interface_pulse_;
     size_t grid_size_;
     std::vector<float> grid_linspace_;
 
