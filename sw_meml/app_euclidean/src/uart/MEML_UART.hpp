@@ -33,6 +33,7 @@ class MEML_UART {
     void _Split(char *s, const char *delim);
     bool _ParseJoystick(std::vector<std::string> &buffer);
     bool _ParseButton(std::vector<std::string> &buffer);
+    bool _ParsePulse(std::vector<std::string> &buffer);
 };
 
 
