@@ -9,6 +9,7 @@ extern "C" {
 #include <utility>
 #include <cstdio>
 #include <cstdlib>
+#include <cmath>
 
 // Internal C++ includes
 #include "../chans_and_data.h"
@@ -20,12 +21,23 @@ extern "C" {
 ///
 
 MEMLInterface::MEMLInterface(chanend_t interface_nn_joystick,
-                             chanend_t interface_fmsynth) :
+                             chanend_t interface_fmsynth,
+                             size_t joystick_gridsize) :
       mode_(mode_inference),
       joystick_current_({ { 0.5, 0.5, 0.5 } }),
       interface_nn_joystick_(interface_nn_joystick),
-      interface_fmsynth_(interface_fmsynth)
+      interface_fmsynth_(interface_fmsynth),
+      grid_size_(joystick_gridsize)
 {
+    // Linspace on grid_linspace_
+    float spacing = 1.f / joystick_gridsize;
+    grid_linspace_.reserve(grid_size_ + 1);
+    std::printf("INTF- Discretisation linspace: [");
+    for (float n = 0; n <= 1.; n += spacing) {
+        grid_linspace_.push_back(n);
+        std::printf("%f, ", n);
+    }
+    std::printf("], grid_size=%d", grid_size_);
 }
 
 void MEMLInterface::SetPot(te_joystick_pot pot_n, num_t value)
@@ -37,6 +49,9 @@ void MEMLInterface::SetPot(te_joystick_pot pot_n, num_t value)
       value = 1.0;
    }
    joystick_current_.as_array[pot_n] = value;
+
+   // Discretise values
+   Discretise_(joystick_current_.as_struct);
 
    // If inference, send down to channel
    if (mode_ == mode_inference) {
@@ -121,6 +136,28 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, bool state)
    }
 }
 
+
+float MEMLInterface::DiscretiseOne_(float n)
+{
+    int idx = static_cast<int>(std::round(n * grid_size_));
+    while (idx < 0) {
+        idx++;
+    }
+    while (idx >= grid_size_) {
+        idx--;
+    }
+    return (grid_linspace_[idx]);
+}
+
+
+void MEMLInterface::Discretise_(ts_joystick_read &params)
+{
+    params.potX = DiscretiseOne_(params.potX);
+    params.potY = DiscretiseOne_(params.potY);
+    params.potRotate = DiscretiseOne_(params.potRotate);
+}
+
+
 ///
 // C WRAPPER TASK
 ///
@@ -136,6 +173,7 @@ void interface_init(chanend_t interface_nn_joystick,
 {
    meml_interface = new (meml_interface_mem_) MEMLInterface(
    interface_nn_joystick,
-   interface_fmsynth
+   interface_fmsynth,
+   4
    );
 }
