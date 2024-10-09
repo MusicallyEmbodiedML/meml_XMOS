@@ -22,7 +22,8 @@ HIL_UART_RX_CALLBACK_ATTR
 static void uart_rx_error_callback_(
     uart_callback_code_t callback_code, void *app_data)
 {
-    printf("UART- uart_rx_error: 0x%x\n", callback_code);
+    //printf("UART- uart_rx_error: 0x%x\n", callback_code);
+    return;
 }
 
 

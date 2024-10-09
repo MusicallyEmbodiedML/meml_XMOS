@@ -28,7 +28,8 @@ class MEMLInterface {
  public:
 
     MEMLInterface(chanend_t interface_nn_joystick,
-                  chanend_t interface_fmsynth);
+                  chanend_t interface_fmsynth,
+                  size_t joystick_gridsize);
     void SetPot(te_joystick_pot pot_n, num_t value);
     void SetToggleButton(te_button_idx button_n, bool state);
 
@@ -44,6 +45,11 @@ class MEMLInterface {
     // Channels for outside comms
     chanend_t interface_nn_joystick_;
     chanend_t interface_fmsynth_;
+    size_t grid_size_;
+    std::vector<float> grid_linspace_;
+
+    void Discretise_(ts_joystick_read &params);
+    float DiscretiseOne_(float n);
 };
 
 extern MEMLInterface *meml_interface;
