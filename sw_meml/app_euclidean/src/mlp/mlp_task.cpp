@@ -66,8 +66,8 @@ void Dataset::Train()
     }
     std::printf("MLP- Training...\n");
     mlp_->Train(dataset,
-              1.,
-              1000,
+              0.5,
+              100,
               0.00001,
               false);
     std::printf("MLP- Trained.\n");
