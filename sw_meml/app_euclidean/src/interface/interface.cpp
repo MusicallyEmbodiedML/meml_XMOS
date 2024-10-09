@@ -118,17 +118,21 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, bool state)
       case button_savedata: {
          
          if (mode_ == mode_training) {
-            // Save data point
-            std::vector<num_t> input{
-               joystick_current_.as_struct.potX,
-               joystick_current_.as_struct.potY,
-               joystick_current_.as_struct.potRotate,
-               1.f  // bias
-            };
-            Dataset::Add(
-               input, current_fmsynth_params_
-            );
-            std::printf("INTF- Saved data point\n");
+            if (current_fmsynth_params_.size() > 0) {
+                // Save data point
+                std::vector<num_t> input{
+                joystick_current_.as_struct.potX,
+                joystick_current_.as_struct.potY,
+                joystick_current_.as_struct.potRotate,
+                1.f  // bias
+                };
+                Dataset::Add(
+                input, current_fmsynth_params_
+                );
+                std::printf("INTF- Saved data point\n");
+            } else {
+                std::printf("INTF- Data point skipped\n");
+            }
          }
 
       } break;
@@ -174,6 +178,6 @@ void interface_init(chanend_t interface_nn_joystick,
    meml_interface = new (meml_interface_mem_) MEMLInterface(
    interface_nn_joystick,
    interface_fmsynth,
-   4
+   6
    );
 }
