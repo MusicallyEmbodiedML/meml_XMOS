@@ -150,6 +150,20 @@ bool MEML_UART::_ParseButton(std::vector<std::string> &buffer)
     return true;
 }
 
+bool MEML_UART::_ParsePulse(std::vector<std::string> &buffer)
+{
+    if (buffer.size() != 2) {
+        std::printf("UART- Wrong buffer for pulse parse!\n");
+        return false;
+    }
+
+    std::string pulse_string = buffer[2];
+    float pulse_float = std::strtof(pulse_string.c_str(), nullptr);
+    std::printf("UART- Pulse %f microseconds\n", pulse_float);
+
+    return true;
+}
+
 bool MEML_UART::ParseAndSend(std::vector<std::string> &buffer)
 {
     if (!buffer.size()) {
@@ -166,6 +180,9 @@ bool MEML_UART::ParseAndSend(std::vector<std::string> &buffer)
         } break;
         case 'b': {
             _ParseButton(payload);
+        } break;
+        case 'p': {
+            _ParsePulse(payload);
         } break;
         default: {
             std::printf("UART- message type %c unknown", switch_token);
