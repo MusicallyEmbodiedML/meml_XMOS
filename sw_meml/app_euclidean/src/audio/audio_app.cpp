@@ -204,3 +204,15 @@ void audio_app_paramupdate(chanend_t fmsynth_paramupdate)
 #endif
     }
 }
+
+void audio_app_pulseupdate(chanend_t interface_pulse)
+{
+    while (1) {
+        int32_t pulse = chan_in_word(interface_pulse);
+        //std::printf("AUD- Pulse=%ld\n", pulse);
+        float pulse_seconds = static_cast<float>(pulse)*1e-6;
+        float pulse_freq = 1./pulse_seconds;
+        //std::printf("AUD- Pulse Freq(Hz)=%f\n", pulse_freq);
+        ph->SetF0(pulse_freq);
+    }
+}
