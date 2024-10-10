@@ -95,23 +95,24 @@ void audio_app_init(float sample_rate, port_t p1, port_t p2)
     ph->SetF0(0.5);
 
     // Generators
-    EuclideanSeq::params seq_params[kNGenerators] = {
-        {
-            11, // n
-            7,  // k
-            0,  // offset_n
-            1,  // offset_d
-        },
-        {
-            7, // n
-            4,  // k
-            3,  // offset_n
-            8,  // offset_d
-        }
-    };
+    // EuclideanSeq::params seq_params[kNGenerators] = {
+    //     {
+    //         11, // n
+    //         7,  // k
+    //         0,  // offset_n
+    //         1,  // offset_d
+    //     },
+    //     {
+    //         7, // n
+    //         4,  // k
+    //         3,  // offset_n
+    //         8,  // offset_d
+    //     }
+    // };
     for (unsigned int n = 0; n < kNGenerators; n++) {
         seq[n] = new (seq_mem_ + n * sizeof(EuclideanSeq)) EuclideanSeq();
-        seq[n]->SetParams(seq_params[n]);
+        // Do not set params until NN sends them
+        //seq[n]->SetParams(seq_params[n]);
     }
 
     // Ports
