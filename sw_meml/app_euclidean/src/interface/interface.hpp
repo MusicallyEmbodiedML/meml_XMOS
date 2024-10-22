@@ -47,6 +47,7 @@ class MEMLInterface {
     chanend_t interface_fmsynth_;
     chanend_t interface_pulse_;
     size_t grid_size_;
+    bool discretise_;
     std::vector<float> grid_linspace_;
 
     void Discretise_(ts_joystick_read &params);
