@@ -23,11 +23,12 @@ extern "C" {
 MEMLInterface::MEMLInterface(chanend_t interface_fmsynth,
                              chanend_t interface_pulse,
                              size_t joystick_gridsize) :
-      mode_(mode_inference),
-      joystick_current_({ { 0.5, 0.5, 0.5 } }),
-      interface_fmsynth_(interface_fmsynth),
-      interface_pulse_(interface_pulse),
-      grid_size_(joystick_gridsize)
+        mode_(mode_inference),
+        joystick_current_({ { 0.5, 0.5, 0.5 } }),
+        interface_fmsynth_(interface_fmsynth),
+        interface_pulse_(interface_pulse),
+        grid_size_(joystick_gridsize),
+        discretise_(grid_size_ > 0)
 {
     if (joystick_gridsize) {
         // Linspace on grid_linspace_
@@ -44,27 +45,28 @@ MEMLInterface::MEMLInterface(chanend_t interface_fmsynth,
 
 void MEMLInterface::SetPot(te_joystick_pot pot_n, num_t value)
 {
-   // Update state of joystick
-   if (value < 0) {
-      value = 0;
-   } else if (value > 1.0) {
-      value = 1.0;
-   }
-   joystick_current_.as_array[pot_n] = value;
-
-    if (grid_size_) {
-        // Discretise values
-        Discretise_(joystick_current_.as_struct);
+    // Update state of joystick
+    if (value < 0) {
+        value = 0;
+    } else if (value > 1.0) {
+        value = 1.0;
     }
+    joystick_current_.as_array[pot_n] = value;
 
-   // If inference, send down to channel
-   if (mode_ == mode_inference) {
-      mlp_inference_nochannel(joystick_current_.as_struct);
-   }
+        if (grid_size_ && discretise_) {
+            // Discretise values
+            Discretise_(joystick_current_.as_struct);
+        }
+
+    // If inference, send down to channel
+    if (mode_ == mode_inference) {
+        mlp_inference_nochannel(joystick_current_.as_struct);
+    }
 }
 
 void MEMLInterface::SetPulse(int32_t pulse)
 {
+    //std::printf("INTF- Pulse %ld\n", pulse);
     chan_out_word(interface_pulse_, pulse);
 }
 
@@ -79,64 +81,82 @@ static void GenParams_(std::vector<float> &param_vector, size_t how_many)
 
 void MEMLInterface::SetToggleButton(te_button_idx button_n, bool state)
 {
-   switch(button_n) {
-      case toggle_training: {
+    switch(button_n) {
 
-         if (state == mode_inference && mode_ == mode_training) {
+        case toggle_training: {
+
+            if (state == mode_inference && mode_ == mode_training) {
             Dataset::Train();
-         #if !(INTERFACE_STANDALONE)
+            #if !(INTERFACE_STANDALONE)
             // Print debug model
             //DebugDumpJSON();
-         #endif
-         }
-         mode_ = static_cast<te_nn_mode>(state);
-         std::string dbg_mode(( mode_ == mode_training ) ? "training" : "inference");
-         std::printf("INTF- Mode: %s\n", dbg_mode.c_str());
+            #endif
+            }
+            mode_ = static_cast<te_nn_mode>(state);
+            std::string dbg_mode(( mode_ == mode_training ) ? "training" : "inference");
+            std::printf("INTF- Mode: %s\n", dbg_mode.c_str());
 
-      } break;
-      case button_randomise: {
+        } break;
 
-         if (mode_ == mode_training) {
+        case button_randomise: {
+
+            if (mode_ == mode_training) {
             // Generate random params
             std::vector<float> rand_params(kN_gen_params);
             GenParams_(rand_params, kN_gen_params);
 
             // Send them down to fmsynth
             chan_out_buf_byte(
-               interface_fmsynth_,
-               reinterpret_cast<uint8_t *>(rand_params.data()),
-               sizeof(num_t) * kN_gen_params
+                interface_fmsynth_,
+                reinterpret_cast<uint8_t *>(rand_params.data()),
+                sizeof(num_t) * kN_gen_params
             );
 
             // Also save them in an intermediate space
             current_fmsynth_params_ = std::move(rand_params);
             std::printf("INTF- Random params\n");
-         }
-
-      } break;
-      case button_savedata: {
-         
-         if (mode_ == mode_training) {
-            if (current_fmsynth_params_.size() > 0) {
-                // Save data point
-                std::vector<num_t> input{
-                joystick_current_.as_struct.potX,
-                joystick_current_.as_struct.potY,
-                joystick_current_.as_struct.potRotate,
-                1.f  // bias
-                };
-                Dataset::Add(
-                input, current_fmsynth_params_
-                );
-                std::printf("INTF- Saved data point\n");
-            } else {
-                std::printf("INTF- Data point skipped\n");
             }
-         }
 
-      } break;
-      default: {}
-   }
+        } break;
+
+        case button_savedata: {
+            
+            if (mode_ == mode_training) {
+                if (current_fmsynth_params_.size() > 0) {
+                    // Save data point
+                    std::vector<num_t> input{
+                    joystick_current_.as_struct.potX,
+                    joystick_current_.as_struct.potY,
+                    joystick_current_.as_struct.potRotate,
+                    1.f  // bias
+                    };
+                    Dataset::Add(
+                    input, current_fmsynth_params_
+                    );
+                    std::printf("INTF- Saved data point\n");
+                } else {
+                    std::printf("INTF- Data point skipped\n");
+                }
+            }
+
+        } break;
+
+        case button_reset: {
+            std::printf("INTF - button_reset not implemented.\n");
+        } break;
+
+        case toggle_discretise: {
+            discretise_ = state;
+            std::printf("INTF - discretising to %d.\n",
+                    (discretise_) ? grid_size_ : 0);
+        } break;
+
+        case toggle_complex: {
+            std::printf("INTF - toggle_complex not implemented.\n");
+        } break;
+
+        default: {}
+    }
 }
 
 
@@ -175,6 +195,6 @@ void interface_init(chanend_t interface_fmsynth,
     meml_interface = new (meml_interface_mem_) MEMLInterface(
         interface_fmsynth,
         interface_pulse,
-        0
+        0 // grid size (even for odd, odd for even)
     );
 }

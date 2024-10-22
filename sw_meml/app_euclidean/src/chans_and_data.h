@@ -29,6 +29,9 @@ typedef enum {
     toggle_training,
     button_randomise,
     button_savedata,
+    button_reset,
+    toggle_discretise,
+    toggle_complex,
     button_nButtons
 } te_button_idx;
 
