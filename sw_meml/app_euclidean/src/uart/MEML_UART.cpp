@@ -137,14 +137,23 @@ bool MEML_UART::_ParseButton(std::vector<std::string> &buffer)
     }
     bool btn_value_bool = !static_cast<bool>(btn_value);
 
-    if (btn_index == 0) { // Toggle
-        meml_interface->SetToggleButton(static_cast<te_button_idx>(btn_index), btn_value_bool);
-    } else {  // Buttons
-        if (btn_value_bool && !button_states_[btn_index]) {
-            // Pressed
+    switch (btn_index) {
+        case toggle_training:
+        case toggle_discretise:
+        case toggle_complex:
+        {
             meml_interface->SetToggleButton(static_cast<te_button_idx>(btn_index), btn_value_bool);
-        }
-    }
+        } break;
+        case button_randomise:
+        case button_savedata:
+        case button_reset:
+        {
+            if (btn_value_bool && !button_states_[btn_index]) {
+                // Pressed
+                meml_interface->SetToggleButton(static_cast<te_button_idx>(btn_index), btn_value_bool);
+            }
+        } break;
+    } // switch
     button_states_[btn_index] = btn_value_bool;
 
     return true;
