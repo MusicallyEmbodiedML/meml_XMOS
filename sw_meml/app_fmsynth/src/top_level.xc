@@ -35,15 +35,8 @@ extern void uart_init();
 extern void uart_rx_task();
 // MLP tasks
 extern void mlp_init(chanend interface_fmsynth);
-extern void mlp_inference_task(chanend interface_nn_joystick,
-                               chanend interface_fmsynth,
-                               chanend interface_nn_data,
-                               chanend interface_nn_train);
 // Interface
-extern void interface_init(chanend interface_nn_joystick,
-                           chanend interface_fmsynth,
-                           chanend interface_nn_data,
-                           chanend interface_nn_train);
+extern void interface_init(chanend interface_fmsynth);
 
 
 /**
@@ -115,18 +108,12 @@ int main(void){
     par{
         on tile[0]: {
             // Tile 0 channels
-            chan interface_nn_joystick;
-            chan interface_nn_data;
-            chan interface_nn_train;
 
             // Init tasks
             uart_init();
             mlp_init(interface_fmsynth);
             interface_init(
-                interface_nn_joystick,
-                interface_fmsynth,
-                interface_nn_data,
-                interface_nn_train
+                interface_fmsynth
             );
             // Runtime tasks
             par {

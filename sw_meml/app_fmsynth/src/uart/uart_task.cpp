@@ -22,7 +22,8 @@ HIL_UART_RX_CALLBACK_ATTR
 static void uart_rx_error_callback_(
     uart_callback_code_t callback_code, void *app_data)
 {
-    printf("UART- uart_rx_error: 0x%x\n", callback_code);
+    //printf("UART- uart_rx_error: 0x%x\n", callback_code);
+    return;
 }
 
 
@@ -57,9 +58,9 @@ void uart_rx_task()
     printf("UART- Listening...\n");
     while (true) {
         char rx = uart_rx(&uart_rx_ctx_);
-        if (rx) {
-            printf("%c", rx);
-        }
+        // if (rx) {
+        //     printf("%c", rx);
+        // }
         // Process characters from the UART interface
         meml_uart_.Process(rx);
 

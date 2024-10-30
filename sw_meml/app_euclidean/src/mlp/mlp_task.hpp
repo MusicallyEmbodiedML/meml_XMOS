@@ -10,7 +10,7 @@ extern "C" {
 
     /**
      * @brief Task to handle pot position to FMsynth parameters.
-     * 
+     *
      * @param dispatcher_nn Chanend receiving joystick reads from dispatcher.
      * Expects ts_joystick_read being sent to it.
      * @param nn_paramupdate Chanend sending FM parameters to
