@@ -14,7 +14,8 @@
 #define XMOS_I2S_MASTER         1
 #endif
 
-
+// UART resources
+on tile[0]: out port p_uart_tx =                            XS1_PORT_4C;
 // I2S resources
 on tile[1]: in port p_mclk =                                PORT_MCLK_IN;
 on tile[1]: buffered out port:32 p_lrclk =                  PORT_I2S_LRCLK;
@@ -33,6 +34,7 @@ extern void audio_app_paramupdate(chanend fmsynth_paramupdate);
 // UART tasks
 extern void uart_init();
 extern void uart_rx_task();
+extern void uart_tx_task([[hwtimer]] timer testsend_timer);
 // MLP tasks
 extern void mlp_init(chanend interface_fmsynth);
 // Interface
@@ -109,6 +111,10 @@ int main(void){
         on tile[0]: {
             // Tile 0 channels
 
+            // Tile 0 timers
+            [[hwtimer]]
+            timer testsend_timer;
+
             // Init tasks
             uart_init();
             mlp_init(interface_fmsynth);
@@ -119,6 +125,7 @@ int main(void){
             par {
                 tile_0_main(i2s_remote);
                 uart_rx_task();
+                uart_tx_task(testsend_timer);
             }
         }
         on tile[1]: {

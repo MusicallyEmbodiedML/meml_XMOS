@@ -4,7 +4,6 @@ extern "C" {
 #include "uart.h"
 #include <xs1.h>
 #include <platform.h>
-#include <xcore/hwtimer.h>
 #include <stdio.h>
 }
 
@@ -14,7 +13,9 @@ extern "C" {
 static constexpr unsigned int kBaud_rate_ = 115200;
 
 static hwtimer_t tmr_rx_;
+static hwtimer_t tmr_tx_;
 static uart_rx_t uart_rx_ctx_;
+static uart_tx_t uart_tx_ctx_;
 
 static MEML_UART meml_uart_;
 
@@ -31,7 +32,8 @@ void uart_init()
 {
     // Resources for UART
     tmr_rx_ = hwtimer_alloc();
-    if (!tmr_rx_) {
+    tmr_tx_ = hwtimer_alloc();
+    if (!tmr_rx_ || !tmr_tx_) {
         printf("UART- Timer not allocated!\n");
     }
 
@@ -49,8 +51,22 @@ void uart_init()
         uart_rx_error_callback_,
         &uart_rx_ctx_
     );
-
     printf("UART- Initialised UART RX\n");
+
+    uart_tx_init(
+        &uart_tx_ctx_,
+        PORT_LEDS,  //X0D11
+        kBaud_rate_,
+        8,
+        UART_PARITY_NONE,
+        1,
+        tmr_tx_,
+        nullptr,
+        0,
+        nullptr,
+        nullptr
+    );
+    printf("UART- Initialised UART TX\n");
 }
 
 void uart_rx_task()
@@ -68,11 +84,19 @@ void uart_rx_task()
         if (meml_uart_.IsThereAMessage()) {
             std::vector<std::string> message;
             if (meml_uart_.GetMessage(message)) {
-                
+
                 // Parse message (and displatch to interface internally)
                 if (meml_uart_.ParseAndSend(message)) {
                 }
             }
-        }    
+        }
+    }
+}
+
+void uart_tx_task(hwtimer_t testsend_timer)
+{
+    while (true) {
+        hwtimer_delay(testsend_timer, static_cast<unsigned int>(1*1e8));
+        uart_tx(&uart_tx_ctx_, '.');
     }
 }
