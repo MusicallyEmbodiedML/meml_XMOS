@@ -185,6 +185,15 @@ void mlp_save_all()
     flash_->WriteToFlash();
     flash_->disconnect();
     std::printf("MLP- Dataset and model saved to flash.\n");
+    flash_->connect();
+    flash_->ReadFromFlash();
+    flash_->disconnect();
+    auto flash_buffer_ptr = flash_->GetPayloadPtr();
+    if (*flash_buffer_ptr == flash_buffer) {
+        std::printf("MLP- Flash write verified.\n");
+    } else {
+        std::printf("MLP- Flash write failed!\n");
+    }
 }
 
 
