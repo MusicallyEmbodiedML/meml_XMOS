@@ -97,6 +97,11 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, bool state)
             }
         } break;
 
+        case button_reset: {
+            std::printf("INTF- Reset\n");
+            Dataset::Clear();
+        }
+
         default: {}
     }
 }

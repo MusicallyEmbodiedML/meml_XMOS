@@ -1,8 +1,9 @@
 #include "mlp_task.hpp"
 #include "MLP.h"
+#include "utils/Flash.hpp"
+#include "utils/Serialise.hpp"
 #include "../chans_and_data.h"
 
-#include <memory>
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -12,6 +13,10 @@ extern "C" {
 }
 
 #include "FMSynth.hpp"
+
+
+static void mlp_load_all();
+static void mlp_save_all();
 
 
 // MLP config constants
@@ -31,6 +36,12 @@ static const float constant_weight_init = 0;
 static MLP<float> *mlp_ = nullptr;
 static char mlp_mem_[sizeof(MLP<float>)];
 
+// Flash memory
+static XMOSFlash *flash_ = nullptr;
+static char flash_mem_[sizeof(XMOSFlash)];
+static constexpr size_t kSigLength = 4;
+static const std::vector<uint8_t> payload_signature_ref = {'b', 'e', 't', 'a'};
+
 /******************************
  * INTERFACE IMPLEMENTATION
  ******************************/
@@ -39,23 +50,23 @@ static char mlp_mem_[sizeof(MLP<float>)];
 
 //static constexpr unsigned int kN_examples = 10;
 
-static std::vector<std::vector<float>> features;//(kN_examples);
-static std::vector<std::vector<float>> labels;//(kN_examples);
+static std::vector<std::vector<float>> features_;//(kN_examples);
+static std::vector<std::vector<float>> labels_;//(kN_examples);
 
 
 void Dataset::Add(std::vector<float> &feature, std::vector<float> &label)
 {
     auto feature_local = feature;
     auto label_local = label;
-    features.push_back(feature_local);
-    labels.push_back(label_local);
+    features_.push_back(feature_local);
+    labels_.push_back(label_local);
     std::printf("MLP- Added example.\n");
-    std::printf("MLP- Feature size %d, label size %d.\n", features.size(), labels.size());
+    std::printf("MLP- Feature size %d, label size %d.\n", features_.size(), labels_.size());
 }
 
 void Dataset::Train()
 {
-    MLP<float>::training_pair_t dataset(features, labels);
+    MLP<float>::training_pair_t dataset(features_, labels_);
 
     std::printf("MLP- Feature size %d, label size %d.\n", dataset.first.size(), dataset.second.size());
     if (!dataset.first.size() || !dataset.second.size()) {
@@ -72,8 +83,29 @@ void Dataset::Train()
               0.0001,
               false);
     std::printf("MLP- Trained.\n");
+
+    mlp_save_all();
 }
 
+void Dataset::Clear()
+{
+    features_.clear();
+    labels_.clear();
+}
+
+void Dataset::Load(std::vector<std::vector<float>> &features,
+                   std::vector<std::vector<float>> &labels)
+{
+    features_ = features;
+    labels_ = labels;
+}
+
+void Dataset::Fetch(const std::vector<std::vector<float>> *features,
+                    const std::vector<std::vector<float>> *labels)
+{
+    features = &features_;
+    labels = &labels_;
+}
 
 /******************************
  * MLP TASK
@@ -81,8 +113,10 @@ void Dataset::Train()
 
 chanend_t nn_paramupdate_ = 0;
 
+
 void mlp_init(chanend_t nn_paramupdate)
 {
+    // Instantiate objects
     mlp_ = new (mlp_mem_) MLP<float>(
         layers_nodes,
         layers_activfuncs,
@@ -90,10 +124,67 @@ void mlp_init(chanend_t nn_paramupdate)
         use_constant_weight_init,
         constant_weight_init
     );
+    flash_ = new(flash_mem_) XMOSFlash();
 
+    // Instantiate channels
     nn_paramupdate_ = nn_paramupdate;
 
     std::printf("MLP- Initialised.\n");
+
+    mlp_load_all();
+}
+
+
+void mlp_load_all()
+{
+    flash_->connect();
+    flash_->ReadFromFlash();
+    flash_->disconnect();
+
+    size_t r_head = 0;
+    const std::vector<uint8_t> *flash_buffer_ptr = flash_->GetPayloadPtr();
+
+    // Check that data was formatted correctly
+    bool data_found = false;
+    if (flash_buffer_ptr->size() > kSigLength) {
+        std::vector<uint8_t> payload_signature(flash_buffer_ptr->begin(),
+                                            flash_buffer_ptr->begin() + kSigLength);
+        data_found = payload_signature == payload_signature_ref;
+        r_head += kSigLength;
+    }
+
+    if (data_found) {
+        features_.clear();
+        r_head = Serialise::ToVector2D(r_head, *flash_buffer_ptr, features_);
+        labels_.clear();
+        r_head = Serialise::ToVector2D(r_head, *flash_buffer_ptr, labels_);
+        r_head = mlp_->FromSerialised(r_head, *flash_buffer_ptr);
+        std::printf("MLP- TODO print loaded data info\n");
+    } else {
+        std::printf("MLP- No flash data found.\n");
+    }
+}
+
+
+void mlp_save_all()
+{
+    // Put in signature
+    size_t w_head = 0;
+    std::vector<uint8_t> flash_buffer(payload_signature_ref.begin(),
+                                      payload_signature_ref.end());
+    w_head += kSigLength;
+
+    // Serialise data
+    w_head = Serialise::FromVector2D(w_head, features_, flash_buffer);
+    w_head = Serialise::FromVector2D(w_head, labels_, flash_buffer);
+    w_head = mlp_->Serialise(w_head, flash_buffer);
+
+    // Dump data to buffer
+    flash_->SetPayload(flash_buffer);
+    flash_->connect();
+    flash_->WriteToFlash();
+    flash_->disconnect();
+    std::printf("MLP- Dataset and model saved to flash.\n");
 }
 
 
