@@ -27,7 +27,7 @@ extern "C" {
 
 }  // extern "C"
 
-extern std::vector<float> mlp_stored_output;;
+extern std::vector<float> mlp_stored_output;
 
 
 #endif  // __MLP_TASK_HPP__
