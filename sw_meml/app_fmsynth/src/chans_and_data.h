@@ -28,7 +28,7 @@ typedef enum {
 typedef enum {
     toggle_training,
     button_randomise,
-    button_savedata,
+    toggle_savedata,
     button_reset,
     toggle_discretise,
     toggle_complex,

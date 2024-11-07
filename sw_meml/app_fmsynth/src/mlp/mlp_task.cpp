@@ -15,6 +15,7 @@ extern "C" {
 }
 
 
+// Private "methods"
 static void mlp_load_all();
 static void mlp_save_all();
 
@@ -31,6 +32,8 @@ static const float constant_weight_init = 0;
 static MLP<float> *mlp_ = nullptr;
 static char mlp_mem_[sizeof(MLP<float>)];
 static size_t n_output_params_ = 0;
+static MLP<float>::mlp_weights mlp_stored_weights_;
+std::vector<float> mlp_stored_output;
 
 // Flash memory
 static XMOSFlash *flash_ = nullptr;
@@ -75,6 +78,9 @@ void mlp_init(chanend_t nn_paramupdate, size_t n_params)
 
 void mlp_train()
 {
+    // Restore weights first
+    mlp_->SetWeights(mlp_stored_weights_);
+
     MLP<float>::training_pair_t dataset(Dataset::GetFeatures(), Dataset::GetLabels());
 
     std::printf("MLP- Feature size %d, label size %d.\n", dataset.first.size(), dataset.second.size());
@@ -158,6 +164,11 @@ void mlp_save_all()
     }
 }
 
+void mlp_draw()
+{
+    mlp_stored_weights_ = mlp_->GetWeights();
+}
+
 
 void mlp_inference_nochannel(ts_joystick_read joystick_read) {
     // Instantiate data in/out
@@ -170,6 +181,10 @@ void mlp_inference_nochannel(ts_joystick_read joystick_read) {
     std::vector<num_t> output(n_output_params_);
     // Run model
     mlp_->GetOutput(input, &output);
+
+    // TODO apply transform here if set
+
+    mlp_stored_output = output;
 
     // Send result
     //std::printf("INTF- Sending paramupdate to FMsynth...\n");

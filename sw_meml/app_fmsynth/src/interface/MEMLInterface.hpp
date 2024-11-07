@@ -28,6 +28,7 @@ class MEMLInterface {
 
     // States
     te_nn_mode mode_;
+    bool joystick_inference_;
     union {
         ts_joystick_read as_struct;
         num_t as_array[sizeof(ts_joystick_read)/sizeof(num_t)];

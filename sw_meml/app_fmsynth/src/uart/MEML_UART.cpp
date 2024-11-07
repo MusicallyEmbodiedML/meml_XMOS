@@ -140,11 +140,11 @@ bool MEML_UART::_ParseButton(std::vector<std::string> &buffer)
 
     switch (btn_index) {
         case toggle_training:
+        case toggle_savedata:
         {
         meml_interface->SetToggleButton(static_cast<te_button_idx>(btn_index), btn_value_bool);
         } break;
         case button_randomise:
-        case button_savedata:
         case button_reset:
         {
         if (btn_value_bool && !button_states_[btn_index]) {
