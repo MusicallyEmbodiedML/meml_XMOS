@@ -1,21 +1,21 @@
 #ifndef __CHANS_AND_DATA_H__
 #define __CHANS_AND_DATA_H__
 
-// MLP types
-#include "Data.h"
 
-#ifdef __cplusplus
+#if defined(__cplusplus) || defined(__XC__)
 extern "C" {
 #endif
+
+#include <stddef.h>
 
 /**
  * @brief Inserts
  * 
  */
 typedef struct {
-    num_t potX;
-    num_t potY;
-    num_t potRotate;
+    float potX;
+    float potY;
+    float potRotate;
 } ts_joystick_read;
 
 typedef enum {
@@ -40,8 +40,9 @@ typedef enum {
     mode_training
 } te_nn_mode;
 
+const size_t kN_nn_params = 14;
 
-#ifdef __cplusplus
+#if defined(__cplusplus) || defined(__XC__)
 }
 #endif
 

@@ -11,6 +11,7 @@ extern "C" {
 }
 
 #include "../chans_and_data.h"
+#include "Data.h"
 #include "audio_buffers.h"
 // Include audio components
 #include "FMSynth.hpp"

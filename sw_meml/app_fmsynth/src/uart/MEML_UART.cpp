@@ -1,6 +1,7 @@
 #include "MEML_UART.hpp"
 
 #include "../interface/interface.hpp"
+#include "Data.h"
 
 #include <string>
 #include <cstring>
@@ -21,7 +22,7 @@ void MEML_UART::Process(char rx)
     if (rx == '\n') {
         // Terminated line of parameters
         _PrintBufferState();
-        
+
         // Tokenise and make package
         _Split(reinterpret_cast<char*>(buffer_.data()), ",");
 
