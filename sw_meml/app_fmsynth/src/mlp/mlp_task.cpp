@@ -34,6 +34,7 @@ static char mlp_mem_[sizeof(MLP<float>)];
 static size_t n_output_params_ = 0;
 static MLP<float>::mlp_weights mlp_stored_weights_;
 std::vector<float> mlp_stored_output;
+bool randomised_state_ = false;
 
 // Flash memory
 static XMOSFlash *flash_ = nullptr;
@@ -79,7 +80,11 @@ void mlp_init(chanend_t nn_paramupdate, size_t n_params)
 void mlp_train()
 {
     // Restore weights first
-    mlp_->SetWeights(mlp_stored_weights_);
+    if (randomised_state_ && mlp_stored_weights_.size() > 0) {
+        mlp_->SetWeights(mlp_stored_weights_);
+        randomised_state_ = false;
+        std::printf("MLP- Restored pre-random weights.\n");
+    }
 
     MLP<float>::training_pair_t dataset(Dataset::GetFeatures(), Dataset::GetLabels());
 
@@ -166,7 +171,22 @@ void mlp_save_all()
 
 void mlp_draw()
 {
-    mlp_stored_weights_ = mlp_->GetWeights();
+    if (!randomised_state_) {
+        mlp_stored_weights_ = mlp_->GetWeights();
+        randomised_state_ = true;
+        std::printf("MLP- Stored pre-random weights.\n");
+    }
+    static MLP<float>::mlp_weights pre_randomised_weights_ = mlp_->GetWeights();
+    mlp_->DrawWeights();
+    std::printf("MLP- Weights randomised.\n");
+
+    // Check weights are actually any different
+    static MLP<float>::mlp_weights post_randomised_weights_ = mlp_->GetWeights();
+    std::vector<float> pre_random = pre_randomised_weights_[0][0];
+    std::vector<float> post_random = post_randomised_weights_[0][0];
+    for (unsigned int n = 0; n < pre_random.size(); n++) {
+        std::printf("Pre: %f --- Post: %f\n", pre_random[n], post_random[n]);
+    }
 }
 
 

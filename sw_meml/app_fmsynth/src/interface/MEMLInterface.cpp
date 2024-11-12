@@ -92,8 +92,9 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, bool state)
             if (mode_ == mode_training) {
                 if (state) {  // Button pressed/toggle on
                     joystick_inference_ = false;
+                    std::printf("INTF- Move the joystick to where you want it...\n");
                 } else {  // Button released/toggle off
-                    if (current_fmsynth_params_.size() > 0) {
+                    if (mlp_stored_output.size() > 0) {
                         // Save data point
                         std::vector<num_t> input{
                             joystick_current_.as_struct.potX,
