@@ -10,8 +10,8 @@ set(APP_DEPENDENT_MODULES           "lib_board_support"
                                     "lib_mlp"
                                     "lib_synth")
 
-set(APP_COMPILER_FLAGS              -O0
-                                    -g
+set(APP_COMPILER_FLAGS              -O3
+                
                                     -report
                                     -DBOARD_SUPPORT_BOARD=XK_EVK_XU316
                                     -DXMOS_I2S_MASTER=ON

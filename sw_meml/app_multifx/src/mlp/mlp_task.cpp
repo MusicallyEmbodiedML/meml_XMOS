@@ -11,7 +11,7 @@ extern "C" {
     #include <xcore/channel.h>
 }
 
-#include "FMSynth.hpp"
+#include "matrixMix.hpp"
 
 
 // MLP config constants
@@ -96,6 +96,11 @@ void mlp_init(chanend_t nn_paramupdate)
     std::printf("MLP- Initialised.\n");
 }
 
+#define PERIODIC_DEBUG(COUNT, FUNC) \
+        static size_t ct=0; \
+        if (ct++ % COUNT == 0) { \
+            FUNC         \
+        }
 
 void mlp_inference_nochannel(ts_joystick_read joystick_read) {
     // Instantiate data in/out
@@ -108,6 +113,14 @@ void mlp_inference_nochannel(ts_joystick_read joystick_read) {
     std::vector<num_t> output(kN_synthparams);
     // Run model
     mlp_->GetOutput(input, &output);
+    // PERIODIC_DEBUG(1,
+        // printf("NN: ");
+        // for(size_t i=0; i < output.size(); i++) {
+        //     printf("%f\t", output[i]);
+        // }
+        // printf("\n");
+    // )
+
 
     // Send result
     //std::printf("INTF- Sending paramupdate to FMsynth...\n");
