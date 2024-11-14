@@ -40,6 +40,7 @@ void uart_init()
     uart_rx_init(
         &uart_rx_ctx_,
         PORT_UART_RX,  //X0D00,
+        0,
         kBaud_rate_,
         8,
         UART_PARITY_NONE,
@@ -56,6 +57,7 @@ void uart_init()
     uart_tx_init(
         &uart_tx_ctx_,
         PORT_LEDS,  //X0D11
+        0,
         kBaud_rate_,
         8,
         UART_PARITY_NONE,

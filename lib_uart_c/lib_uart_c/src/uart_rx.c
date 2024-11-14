@@ -16,6 +16,7 @@ DECLARE_INTERRUPT_CALLBACK(uart_rx_handle_isr, callback_info);
 void uart_rx_blocking_init(
         uart_rx_t *uart,
         port_t rx_port,
+        size_t rx_port_bit,
         uint32_t baud_rate,
         uint8_t num_data_bits,
         uart_parity_t parity,
@@ -24,13 +25,14 @@ void uart_rx_blocking_init(
         void(*uart_rx_error_callback_fptr)(uart_callback_code_t callback_code, void *app_data),
         void *app_data){
 
-    uart_rx_init(uart, rx_port, baud_rate, num_data_bits, parity, stop_bits, tmr,
+    uart_rx_init(uart, rx_port, rx_port_bit, baud_rate, num_data_bits, parity, stop_bits, tmr,
         NULL, 0, NULL, uart_rx_error_callback_fptr, app_data);
 }
 
 void uart_rx_init(
         uart_rx_t *uart,
         port_t rx_port,
+        size_t rx_port_bit,
         uint32_t baud_rate,
         uint8_t num_data_bits,
         uart_parity_t parity,
@@ -49,6 +51,7 @@ void uart_rx_init(
     #endif
 
     uart->rx_port = rx_port;
+    uart->rx_port_bit = 1 << rx_port_bit;
     uart->bit_time_ticks = XS1_TIMER_HZ / baud_rate;
     uart->next_event_time_ticks = 0;
     xassert(num_data_bits <= 8 && num_data_bits >= 5);
@@ -76,7 +79,7 @@ void uart_rx_init(
 
     //Assert if buffer is used but no timer as we need the timer for buffered mode 
     if(buffer_used(&uart->buffer) && !tmr){
-        xassert(0);    
+        xassert(0);
     }
 
     port_enable(rx_port);
@@ -120,7 +123,7 @@ static inline void sleep_until_start_transition(uart_rx_t *uart){
         port_in_when_pinseq(uart->rx_port, PORT_UNBUFFERED, 0);
     }else{
         //Poll the port
-        while(port_in(uart->rx_port) & 0x1);
+        while(port_in(uart->rx_port) & uart->rx_port_bit);
     }
 }
 
@@ -173,7 +176,7 @@ static inline void uart_rx_handle_event(uart_rx_t *uart){
             port_out(p_dbg, uart->state);
             #endif
 
-            uint32_t pin = port_in(uart->rx_port) & 0x1;
+            uint32_t pin = port_in(uart->rx_port) & uart->rx_port_bit;
             if(pin != 0){
                 uart->cb_code = UART_START_BIT_ERROR;
                 (*uart->uart_rx_error_callback_arg)(uart->cb_code, uart->app_data);
@@ -193,7 +196,7 @@ static inline void uart_rx_handle_event(uart_rx_t *uart){
             port_out(p_dbg, uart->state);
             #endif
 
-            uint32_t pin = port_in(uart->rx_port) & 0x1;
+            uint32_t pin = port_in(uart->rx_port) & uart->rx_port_bit;
             uart->uart_data |= pin << uart->current_data_bit;
             uart->current_data_bit += 1;
 
@@ -216,7 +219,7 @@ static inline void uart_rx_handle_event(uart_rx_t *uart){
             port_out(p_dbg, uart->state);
             #endif
 
-            uint32_t pin = port_in(uart->rx_port) & 0x1;
+            uint32_t pin = port_in(uart->rx_port) & uart->rx_port_bit;
             uint32_t parity_setting = (uart->parity == UART_PARITY_EVEN) ? 0 : 1;
             uint32_t parity = (unsigned)uart->uart_data;
             // crc32(parity, parity_setting, 1); //http://bugzilla/show_bug.cgi?id=18663
@@ -239,7 +242,7 @@ static inline void uart_rx_handle_event(uart_rx_t *uart){
             port_out(p_dbg, uart->state);
             #endif
 
-            uint32_t pin = port_in(uart->rx_port) & 0x1;
+            uint32_t pin = port_in(uart->rx_port) & uart->rx_port_bit;
             if(pin != 1){
                 uart->cb_code = UART_FRAMING_ERROR;
                 (*uart->uart_rx_error_callback_arg)(uart->cb_code, uart->app_data);

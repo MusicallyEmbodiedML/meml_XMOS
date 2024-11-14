@@ -88,6 +88,7 @@ typedef enum {
 typedef struct {
     uart_state_t state;
     port_t tx_port;
+    size_t tx_port_bit;
     uint32_t bit_time_ticks;
     uint32_t next_event_time_ticks;
     uart_parity_t parity;
@@ -132,6 +133,7 @@ typedef struct {
 void uart_tx_init(
         uart_tx_t *uart,
         port_t tx_port,
+        size_t tx_port_bit,
         uint32_t baud_rate,
         uint8_t data_bits,
         uart_parity_t parity,
@@ -162,6 +164,7 @@ void uart_tx_init(
 void uart_tx_blocking_init(
         uart_tx_t *uart,
         port_t tx_port,
+        size_t tx_port_bit,
         uint32_t baud_rate,
         uint8_t data_bits,
         uart_parity_t parity,
@@ -208,6 +211,7 @@ void uart_tx_deinit(
 typedef struct {
     uart_state_t state;
     port_t rx_port;
+    size_t rx_port_bit;
     uint32_t bit_time_ticks;
     uint32_t next_event_time_ticks;
     uart_parity_t parity;
@@ -256,6 +260,7 @@ typedef struct {
 void uart_rx_init(
         uart_rx_t *uart,
         port_t rx_port,
+        size_t rx_port_bit,
         uint32_t baud_rate,
         uint8_t data_bits,
         uart_parity_t parity,
@@ -291,6 +296,7 @@ void uart_rx_init(
 void uart_rx_blocking_init(
         uart_rx_t *uart,
         port_t rx_port,
+        size_t rx_port_bit,
         uint32_t baud_rate,
         uint8_t data_bits,
         uart_parity_t parity,

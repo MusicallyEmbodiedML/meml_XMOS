@@ -11,19 +11,21 @@ DECLARE_INTERRUPT_CALLBACK(uart_tx_handle_event, callback_info);
 void uart_tx_blocking_init(
         uart_tx_t *uart_cfg,
         port_t tx_port,
+        size_t tx_port_bit,
         uint32_t baud_rate,
         uint8_t num_data_bits,
         uart_parity_t parity,
         uint8_t stop_bits,
         hwtimer_t tmr){
 
-    uart_tx_init(uart_cfg, tx_port, baud_rate, num_data_bits, parity, stop_bits, tmr,
+    uart_tx_init(uart_cfg, tx_port, tx_port_bit, baud_rate, num_data_bits, parity, stop_bits, tmr,
                  NULL, 0, NULL, NULL);
 }
 
 void uart_tx_init(
         uart_tx_t *uart_cfg,
         port_t tx_port,
+        size_t tx_port_bit,
         uint32_t baud_rate,
         uint8_t num_data_bits,
         uart_parity_t parity,
@@ -37,6 +39,7 @@ void uart_tx_init(
         ){
 
     uart_cfg->tx_port = tx_port;
+    uart_cfg->tx_port_bit = tx_port_bit;
     uart_cfg->bit_time_ticks = XS1_TIMER_HZ / baud_rate;
 
     uart_cfg->next_event_time_ticks = 0;
@@ -130,7 +133,7 @@ DEFINE_INTERRUPT_CALLBACK(UART_TX_INTERRUPTABLE_FUNCTIONS, uart_tx_handle_event,
     switch(uart_cfg->state){
         case UART_START: {
             uart_cfg->next_event_time_ticks = get_current_time(uart_cfg);
-            port_out(uart_cfg->tx_port, 0);
+            port_out(uart_cfg->tx_port, 0 << uart_cfg->tx_port_bit);
             uart_cfg->state = UART_DATA;
             uart_cfg->current_data_bit = 0;
             uart_cfg->next_event_time_ticks += uart_cfg->bit_time_ticks;
@@ -142,9 +145,9 @@ DEFINE_INTERRUPT_CALLBACK(UART_TX_INTERRUPTABLE_FUNCTIONS, uart_tx_handle_event,
             break;
         }
 
-        case UART_DATA: {    
+        case UART_DATA: {
             uint32_t port_val = (uart_cfg->uart_data >> uart_cfg->current_data_bit) & 0x1;
-            port_out(uart_cfg->tx_port, port_val);
+            port_out(uart_cfg->tx_port, port_val << uart_cfg->tx_port_bit);
             uart_cfg->current_data_bit++;
             uart_cfg->next_event_time_ticks += uart_cfg->bit_time_ticks;
             if(uart_cfg->current_data_bit == uart_cfg->num_data_bits){
@@ -162,14 +165,14 @@ DEFINE_INTERRUPT_CALLBACK(UART_TX_INTERRUPTABLE_FUNCTIONS, uart_tx_handle_event,
             uint32_t parity = (unsigned)uart_cfg->uart_data;
             // crc32(parity, parity_setting, 1); //http://bugzilla/show_bug.cgi?id=18663
             asm volatile("crc32 %0, %2, %3" : "=r" (parity) : "0" (parity), "r" (parity_setting), "r" (1));
-            port_out(uart_cfg->tx_port, parity);
+            port_out(uart_cfg->tx_port, parity << uart_cfg->tx_port_bit);
             uart_cfg->state = UART_STOP;
             uart_cfg->next_event_time_ticks += uart_cfg->bit_time_ticks;
             break;
         }
      
         case UART_STOP: {   
-            port_out(uart_cfg->tx_port, 1);
+            port_out(uart_cfg->tx_port, 1 << uart_cfg->tx_port_bit);
             uart_cfg->current_stop_bit += 1;
             uart_cfg->next_event_time_ticks += uart_cfg->bit_time_ticks; //do before buffered_uart_tx_char_finished
 
