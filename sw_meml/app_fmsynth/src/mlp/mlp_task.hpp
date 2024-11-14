@@ -8,9 +8,6 @@ extern "C" {
     #include <xcore/chanend.h>
 
     void mlp_init(chanend_t nn_paramupdate, size_t n_params);
-    void mlp_inference_nochannel(ts_joystick_read joystick_read);
-    void mlp_train();
-    void mlp_draw();
 
     /**
      * @brief Task to handle pot position to FMsynth parameters.
@@ -27,7 +24,13 @@ extern "C" {
 
 }  // extern "C"
 
-extern std::vector<float> mlp_stored_output;
+#if !defined(__XC__)
+void mlp_inference_nochannel(ts_joystick_read joystick_read);
+void mlp_train();
+void mlp_draw(float speed = 0.01);
+void mlp_trigger_redraw();
 
+extern std::vector<float> mlp_stored_output;
+#endif  // __XC__
 
 #endif  // __MLP_TASK_HPP__

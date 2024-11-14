@@ -107,6 +107,7 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, bool state)
                         Dataset::Add(
                             input, mlp_stored_output
                         );
+                        mlp_trigger_redraw();
                         std::printf("INTF- Saved data point\n");
                     } else {
                         std::printf("INTF- Data point skipped\n");
@@ -119,6 +120,7 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, bool state)
         case button_reset: {
             std::printf("INTF- Reset\n");
             Dataset::Clear();
+            mlp_trigger_redraw();
         }
 
         default: {}

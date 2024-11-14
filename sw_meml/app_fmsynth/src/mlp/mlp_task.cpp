@@ -36,6 +36,7 @@ static size_t n_output_params_ = 0;
 static MLP<float>::mlp_weights mlp_stored_weights_;
 std::vector<float> mlp_stored_output;
 bool randomised_state_ = false;
+bool redraw_weights_ = true;
 
 // Flash memory
 static XMOSFlash *flash_ = nullptr;
@@ -170,7 +171,7 @@ void mlp_save_all()
     }
 }
 
-void mlp_draw()
+void mlp_draw(float speed)
 {
     //MLP<float>::mlp_weights pre_randomised_weights_(mlp_->GetWeights());
     //assert(&(pre_randomised_weights_[0][0]) != &(mlp_->m_layers[0].m_nodes[0].m_weights));
@@ -179,10 +180,16 @@ void mlp_draw()
         mlp_stored_weights_ = mlp_->GetWeights();
         randomised_state_ = true;
         std::printf("MLP- Stored pre-random weights.\n");
+        redraw_weights_ = true;
     }
-
-    mlp_->DrawWeights();
-    std::printf("MLP- Weights randomised.\n");
+    if (redraw_weights_) {
+        mlp_->DrawWeights();
+        std::printf("MLP- Weights randomised.\n");
+        redraw_weights_ = false;
+    } else {
+        mlp_->MoveWeights(speed);
+        std::printf("MLP- Weights moved %f%%.\n", speed*100.);
+    }
 
     // Check weights are actually any different
     // MLP<float>::mlp_weights post_randomised_weights_(mlp_->GetWeights());
@@ -191,6 +198,11 @@ void mlp_draw()
     // for (unsigned int n = 0; n < pre_random.size(); n++) {
     //     std::printf("Pre: %f --- Post: %f\n", pre_random[n], post_random[n]);
     // }
+}
+
+void mlp_trigger_redraw()
+{
+    redraw_weights_ = true;
 }
 
 
