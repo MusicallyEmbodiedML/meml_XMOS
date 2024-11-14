@@ -53,6 +53,7 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, bool state)
         case toggle_training: {
             if (state == mode_inference && mode_ == mode_training) {
                 mlp_train();
+                mlp_inference_nochannel(joystick_current_.as_struct);
             }
             mode_ = static_cast<te_nn_mode>(state);
             std::string dbg_mode(( mode_ == mode_training ) ? "training" : "inference");
@@ -84,6 +85,7 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, bool state)
                 std::printf("INTF- Random params\n");
 #else
                 mlp_draw();
+                mlp_inference_nochannel(joystick_current_.as_struct);
 #endif
             }
         } break;

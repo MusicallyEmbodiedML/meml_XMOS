@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <cassert>
 
 extern "C" {
     #include <xcore/channel.h>
@@ -171,22 +172,25 @@ void mlp_save_all()
 
 void mlp_draw()
 {
+    //MLP<float>::mlp_weights pre_randomised_weights_(mlp_->GetWeights());
+    //assert(&(pre_randomised_weights_[0][0]) != &(mlp_->m_layers[0].m_nodes[0].m_weights));
+
     if (!randomised_state_) {
         mlp_stored_weights_ = mlp_->GetWeights();
         randomised_state_ = true;
         std::printf("MLP- Stored pre-random weights.\n");
     }
-    static MLP<float>::mlp_weights pre_randomised_weights_ = mlp_->GetWeights();
+
     mlp_->DrawWeights();
     std::printf("MLP- Weights randomised.\n");
 
     // Check weights are actually any different
-    static MLP<float>::mlp_weights post_randomised_weights_ = mlp_->GetWeights();
-    std::vector<float> pre_random = pre_randomised_weights_[0][0];
-    std::vector<float> post_random = post_randomised_weights_[0][0];
-    for (unsigned int n = 0; n < pre_random.size(); n++) {
-        std::printf("Pre: %f --- Post: %f\n", pre_random[n], post_random[n]);
-    }
+    // MLP<float>::mlp_weights post_randomised_weights_(mlp_->GetWeights());
+    // std::vector<float>& pre_random(pre_randomised_weights_[0][0]);
+    // std::vector<float>& post_random(post_randomised_weights_[0][0]);
+    // for (unsigned int n = 0; n < pre_random.size(); n++) {
+    //     std::printf("Pre: %f --- Post: %f\n", pre_random[n], post_random[n]);
+    // }
 }
 
 
