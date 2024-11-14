@@ -4,3 +4,4 @@ project(sw_meml)
 
 add_subdirectory(app_fmsynth)
 add_subdirectory(app_euclidean)
+add_subdirectory(app_316_fmsynth)
