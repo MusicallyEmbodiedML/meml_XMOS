@@ -36,6 +36,11 @@ typedef enum {
 } te_button_idx;
 
 typedef enum {
+    slider_randomSpeed,
+    slider_nSliders
+} te_slider_idx;
+
+typedef enum {
     mode_inference,
     mode_training
 } te_nn_mode;

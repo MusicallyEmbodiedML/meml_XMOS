@@ -25,8 +25,22 @@ MEMLInterface::MEMLInterface(chanend_t interface_fmsynth,
         joystick_current_({ { 0.5, 0.5, 0.5 } }),
         interface_fmsynth_(interface_fmsynth),
         gen_params_fn_ptr_(gen_params_fn_ptr),
-        nn_output_size_(nn_output_size)
+        nn_output_size_(nn_output_size),
+        draw_speed_(0.01f)
 {
+}
+
+void MEMLInterface::SetSlider(te_slider_idx idx, num_t value)
+{
+    switch(idx) {
+        case slider_randomSpeed: {
+            draw_speed_ = value;
+        } break;
+
+        default: {
+            std::printf("INTF- Slider idx %d not recognised!n", idx);
+        }
+    }
 }
 
 void MEMLInterface::SetPot(te_joystick_pot pot_n, num_t value)
@@ -84,7 +98,7 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, bool state)
                 current_fmsynth_params_ = std::move(rand_params);
                 std::printf("INTF- Random params\n");
 #else
-                mlp_draw();
+                mlp_draw(draw_speed_);
                 mlp_inference_nochannel(joystick_current_.as_struct);
 #endif
             }

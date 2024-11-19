@@ -163,6 +163,35 @@ bool MEML_UART::_ParseButton(std::vector<std::string> &buffer)
     return true;
 }
 
+bool MEML_UART::_ParseSlider(std::vector<std::string> &buffer)
+{
+    if (buffer.size() != 2) {
+        std::printf("UART- Wrong buffer for slider parse!\n");
+        return false;
+    }
+
+    unsigned int slider_index = std::atoi(buffer[0].c_str());
+    if (slider_index >= slider_nSliders) {
+        std::printf("UART- Wrong slider index %s!\n", buffer[0].c_str());
+        return false;
+    }
+
+    float slider_value = std::atof(buffer[1].c_str());
+    if (std::isinf(slider_value) || std::isnan(slider_value)) {
+        std::printf("UART- Wrong slider value %s!\n", buffer[1].c_str());
+        return false;
+    }
+
+    //std::printf("UART- Slider %d: %f\n", slider_index, slider_value);
+
+    meml_interface->SetSlider(
+        static_cast<te_slider_idx>(slider_index),
+        slider_value
+    );
+
+    return true;
+}
+
 bool MEML_UART::ParseAndSend(std::vector<std::string> &buffer)
 {
     if (!buffer.size()) {
@@ -170,6 +199,10 @@ bool MEML_UART::ParseAndSend(std::vector<std::string> &buffer)
         return false;
     }
     std::string first_token = buffer[0];
+    if (buffer.size() < 2) {
+        std::printf("UART- no payload for token %s\n", first_token.c_str());
+        return false;
+    }
     std::vector<std::string> payload(buffer.begin()+1, buffer.end());
 
     const char switch_token = first_token.back();
@@ -180,6 +213,9 @@ bool MEML_UART::ParseAndSend(std::vector<std::string> &buffer)
         case 'b': {
             _ParseButton(payload);
         } break;
+        case 's': {
+            _ParseSlider(payload);
+        }
         default: {
             //std::printf("UART- message type %c unknown", switch_token);
             return false;

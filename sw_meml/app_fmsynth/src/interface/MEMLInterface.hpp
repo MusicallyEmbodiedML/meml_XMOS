@@ -23,6 +23,7 @@ class MEMLInterface {
                   size_t nn_output_size);
     void SetPot(te_joystick_pot pot_n, num_t value);
     void SetToggleButton(te_button_idx button_n, bool state);
+    void SetSlider(te_slider_idx idx, num_t value);
 
  protected:
 
@@ -41,6 +42,7 @@ class MEMLInterface {
     MEML_IF_CALLBACK_ATTR GenParamsFn_ptr_t gen_params_fn_ptr_;
 
     const size_t nn_output_size_;
+    num_t draw_speed_;
 };
 
 
