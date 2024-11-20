@@ -29,6 +29,7 @@ void mlp_inference_nochannel(ts_joystick_read joystick_read);
 void mlp_train();
 void mlp_draw(float speed = 0.01);
 void mlp_trigger_redraw();
+void mlp_set_speed(float speed);
 
 extern std::vector<float> mlp_stored_output;
 #endif  // __XC__

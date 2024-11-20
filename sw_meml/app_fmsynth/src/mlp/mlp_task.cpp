@@ -17,8 +17,9 @@ extern "C" {
 
 
 // Private "methods"
-static void mlp_load_all();
-static void mlp_save_all();
+static void mlp_load_all_();
+static void mlp_save_all_();
+static void mlp_pretrain_centre_();
 
 
 // MLP config constants
@@ -28,6 +29,10 @@ static const std::vector<std::string> layers_activfuncs = {
 };
 static const bool use_constant_weight_init = false;
 static const float constant_weight_init = 0;
+static constexpr enum {
+    mode_nnweights,
+    mode_pretrain
+} mode_ = mode_pretrain;
 
 // MLP memory
 static MLP<float> *mlp_ = nullptr;
@@ -37,6 +42,8 @@ static MLP<float>::mlp_weights mlp_stored_weights_;
 std::vector<float> mlp_stored_output;
 bool randomised_state_ = false;
 bool redraw_weights_ = true;
+bool flag_zoom_in_ = false;
+float speed_ = 1.0f;
 
 // Flash memory
 static XMOSFlash *flash_ = nullptr;
@@ -76,7 +83,7 @@ void mlp_init(chanend_t nn_paramupdate, size_t n_params)
 
     std::printf("MLP- Initialised.\n");
 
-    mlp_load_all();
+    mlp_load_all_();
 }
 
 void mlp_train()
@@ -106,11 +113,13 @@ void mlp_train()
               false);
     std::printf("MLP- Trained.\n");
 
-    mlp_save_all();
+    mlp_save_all_();
+
+    flag_zoom_in_ = false;
 }
 
 
-void mlp_load_all()
+void mlp_load_all_()
 {
     flash_->connect();
     flash_->ReadFromFlash();
@@ -141,7 +150,7 @@ void mlp_load_all()
 }
 
 
-void mlp_save_all()
+void mlp_save_all_()
 {
     // Put in signature
     size_t w_head = 0;
@@ -176,19 +185,34 @@ void mlp_draw(float speed)
     //MLP<float>::mlp_weights pre_randomised_weights_(mlp_->GetWeights());
     //assert(&(pre_randomised_weights_[0][0]) != &(mlp_->m_layers[0].m_nodes[0].m_weights));
 
+    speed_ = speed;
+
     if (!randomised_state_) {
         mlp_stored_weights_ = mlp_->GetWeights();
         randomised_state_ = true;
         std::printf("MLP- Stored pre-random weights.\n");
         redraw_weights_ = true;
+        flag_zoom_in_ = false;
     }
     if (redraw_weights_) {
         mlp_->DrawWeights();
         std::printf("MLP- Weights randomised.\n");
         redraw_weights_ = false;
     } else {
-        mlp_->MoveWeights(speed);
-        std::printf("MLP- Weights moved %f%%.\n", speed*100.);
+        if (mode_ == mode_pretrain) {
+
+            flag_zoom_in_ = true;
+            // Train network with only one data point at the centre
+            mlp_pretrain_centre_();
+            std::printf("MLP- Pretrained on centre (speed %f%%).\n", speed*100.f);
+
+        } else if (mode_ == mode_nnweights) {
+
+            // Randomise weights less ("move" by speed)
+            mlp_->MoveWeights(speed);
+            std::printf("MLP- Weights moved %f%%.\n", speed*100.f);
+
+        }
     }
 
     // Check weights are actually any different
@@ -200,13 +224,52 @@ void mlp_draw(float speed)
     // }
 }
 
+void mlp_pretrain_centre_()
+{
+    std::vector<std::vector<float>> features {
+        {0.5f, 0.5f, 0.5f, 1.}  // with bias
+    };
+    std::vector<std::vector<float>> labels {
+        mlp_stored_output
+    };
+    MLP<float>::training_pair_t dataset(features, labels);
+
+    // Re-init weights
+    mlp_->DrawWeights();
+    // Train with one point at centre
+    mlp_->Train(dataset,
+              1.,
+              1000,
+              0.00001,
+              false);
+}
+
 void mlp_trigger_redraw()
 {
     redraw_weights_ = true;
 }
 
+void mlp_set_speed(float speed)
+{
+    std::printf("MLP- Speed: %f\n", speed);
+    speed_ = speed;
+}
 
 void mlp_inference_nochannel(ts_joystick_read joystick_read) {
+
+    static const auto zoom_in_ = [](float x) {
+        return (x - 0.5f) * speed_ + 0.5f;
+    };
+
+#if 1
+    // If we're zooming in, we want speed to shrink our view
+    if (flag_zoom_in_) {
+        joystick_read.potX = zoom_in_(joystick_read.potX);
+        joystick_read.potY = zoom_in_(joystick_read.potY);
+        joystick_read.potRotate = zoom_in_(joystick_read.potRotate);
+    }
+#endif
+
     // Instantiate data in/out
     std::vector<num_t> input{
         joystick_read.potX,

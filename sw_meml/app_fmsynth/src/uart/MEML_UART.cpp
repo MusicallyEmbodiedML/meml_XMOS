@@ -200,7 +200,7 @@ bool MEML_UART::ParseAndSend(std::vector<std::string> &buffer)
     }
     std::string first_token = buffer[0];
     if (buffer.size() < 2) {
-        std::printf("UART- no payload for token %s\n", first_token.c_str());
+        //std::printf("UART- no payload for token %s\n", first_token.c_str());
         return false;
     }
     std::vector<std::string> payload(buffer.begin()+1, buffer.end());

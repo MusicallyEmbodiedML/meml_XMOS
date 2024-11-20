@@ -26,7 +26,7 @@ MEMLInterface::MEMLInterface(chanend_t interface_fmsynth,
         interface_fmsynth_(interface_fmsynth),
         gen_params_fn_ptr_(gen_params_fn_ptr),
         nn_output_size_(nn_output_size),
-        draw_speed_(0.01f)
+        draw_speed_(1.f)
 {
 }
 
@@ -35,6 +35,8 @@ void MEMLInterface::SetSlider(te_slider_idx idx, num_t value)
     switch(idx) {
         case slider_randomSpeed: {
             draw_speed_ = value;
+            mlp_set_speed(draw_speed_);
+            mlp_inference_nochannel(joystick_current_.as_struct);
         } break;
 
         default: {
