@@ -10,10 +10,13 @@
 #include <cstdio>
 
 
-MEML_UART::MEML_UART() :
+MEML_UART::MEML_UART(uart_tx_t *uart_tx) :
         buffer_idx_(0),
-        button_states_{false}
+        button_states_{false},
+        uart_tx_(uart_tx)
 {
+    // Request state as soon as woken up
+    RequestState();
 }
 
 
@@ -192,6 +195,17 @@ bool MEML_UART::_ParseSlider(std::vector<std::string> &buffer)
     return true;
 }
 
+void MEML_UART::_ParseState(std::vector<std::string> &buffer)
+{
+    ts_app_state new_state;
+    if (!UART_Common::ExtractAppState(buffer, new_state)) {
+        std::printf("UART - state corrupted!");
+        RequestState();
+    }
+
+    gAppState = new_state;
+}
+
 bool MEML_UART::ParseAndSend(std::vector<std::string> &buffer)
 {
     if (!buffer.size()) {
@@ -199,7 +213,7 @@ bool MEML_UART::ParseAndSend(std::vector<std::string> &buffer)
         return false;
     }
     std::string first_token = buffer[0];
-    if (buffer.size() < 2) {
+    if (buffer.size() < 2 && first_token.back() != UART_Common::state_request) {
         //std::printf("UART- no payload for token %s\n", first_token.c_str());
         return false;
     }
@@ -207,15 +221,21 @@ bool MEML_UART::ParseAndSend(std::vector<std::string> &buffer)
 
     const char switch_token = first_token.back();
     switch (switch_token) {
-        case 'j': {
+        case UART_Common::joystick: {
             _ParseJoystick(payload);
         } break;
-        case 'b': {
+        case UART_Common::button: {
             _ParseButton(payload);
         } break;
-        case 's': {
+        case UART_Common::slider: {
             _ParseSlider(payload);
-        }
+        } break;
+        case UART_Common::state_request: {
+            SendState();
+        } break;
+        case UART_Common::state_dump: {
+            _ParseState(payload);
+        } break;
         default: {
             //std::printf("UART- message type %c unknown", switch_token);
             return false;
@@ -223,4 +243,35 @@ bool MEML_UART::ParseAndSend(std::vector<std::string> &buffer)
     }
 
     return true;
+}
+
+// UART Transmission methods
+
+void MEML_UART::RequestState()
+{
+    std::string req_msg(UART_Common::FormatMessageWithType(
+        UART_Common::state_request,
+        ""
+    ));
+
+    _SendMessage(req_msg);
+}
+
+void MEML_UART::SendState()
+{
+    std::string serialised_app_state(
+        UART_Common::FormatAppState(gAppState));
+    std::string app_state_msg(UART_Common::FormatMessageWithType(
+        UART_Common::state_dump,
+        serialised_app_state
+    ));
+
+    _SendMessage(app_state_msg);
+}
+
+void MEML_UART::_SendMessage(std::string &payload)
+{
+    for (auto &c: payload) {
+        uart_tx(uart_tx_, c);
+    }
 }

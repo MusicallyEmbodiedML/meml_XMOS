@@ -6,6 +6,7 @@ extern "C" {
 #include <platform.h>
 #include <stdio.h>
 }
+#include <memory>
 
 #include "MEML_UART.hpp"
 #include "../chans_and_data.h"
@@ -17,7 +18,8 @@ static hwtimer_t tmr_tx_;
 static uart_rx_t uart_rx_ctx_;
 static uart_tx_t uart_tx_ctx_;
 
-static MEML_UART meml_uart_;
+static MEML_UART *meml_uart_ptr_ = nullptr;
+static uint8_t meml_uart_mem_[sizeof(MEML_UART)];
 
 HIL_UART_RX_CALLBACK_ATTR
 static void uart_rx_error_callback_(
@@ -67,6 +69,8 @@ void uart_init()
         nullptr
     );
     printf("UART- Initialised UART TX\n");
+
+    meml_uart_ptr_ = new (meml_uart_mem_) MEML_UART(&uart_tx_ctx_);
 }
 
 void uart_rx_task()
@@ -78,15 +82,17 @@ void uart_rx_task()
         //     printf("%c", rx);
         // }
         // Process characters from the UART interface
-        meml_uart_.Process(rx);
+        if (meml_uart_ptr_) {
+            meml_uart_ptr_->Process(rx);
 
-        // ...until a message is received in full
-        if (meml_uart_.IsThereAMessage()) {
-            std::vector<std::string> message;
-            if (meml_uart_.GetMessage(message)) {
+            // ...until a message is received in full
+            if (meml_uart_ptr_->IsThereAMessage()) {
+                std::vector<std::string> message;
+                if (meml_uart_ptr_->GetMessage(message)) {
 
-                // Parse message (and displatch to interface internally)
-                if (meml_uart_.ParseAndSend(message)) {
+                    // Parse message (and displatch to interface internally)
+                    if (meml_uart_ptr_->ParseAndSend(message)) {
+                    }
                 }
             }
         }
@@ -96,7 +102,7 @@ void uart_rx_task()
 void uart_tx_task(hwtimer_t testsend_timer)
 {
     while (true) {
-        hwtimer_delay(testsend_timer, static_cast<unsigned int>(1*1e8));
-        uart_tx(&uart_tx_ctx_, '.');
+        //hwtimer_delay(testsend_timer, static_cast<unsigned int>(1*1e8));
+        //uart_tx(&uart_tx_ctx_, '.');
     }
 }
