@@ -57,11 +57,11 @@ void uart_init()
 
     uart_tx_init(
         &uart_tx_ctx_,
-        PORT_LEDS,  //X0D11
+        PORT_LEDS,  //X0D14
         kBaud_rate_,
         8,
         UART_PARITY_NONE,
-        1,
+        2,
         tmr_tx_,
         nullptr,
         0,

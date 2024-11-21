@@ -1,7 +1,7 @@
 #include "MEML_UART.hpp"
 
 #include "../interface/interface.hpp"
-#include "Data.h"
+#include "../chans_and_data.h"
 
 #include <string>
 #include <cstring>
@@ -15,8 +15,20 @@ MEML_UART::MEML_UART(uart_tx_t *uart_tx) :
         button_states_{false},
         uart_tx_(uart_tx)
 {
-    // Request state as soon as woken up
-    RequestState();
+    // Initialise app
+    // TODO this should be persistent and in flash
+    gAppState.app_id = app_id_fmsynth;
+    gAppState.current_dataset = 0;
+    gAppState.current_expl_mode = expl_mode_pretrain;
+    gAppState.current_model = 0;
+    gAppState.current_nn_mode = mode_inference;
+    gAppState.exploration_range = 1.0f;
+    gAppState.last_error = 0;
+    gAppState.n_iterations = 500;
+
+    // Send state as soon as woken up
+    SendState();
+    std::printf("UART- State sent on bootup.\n");
 }
 
 
@@ -266,6 +278,7 @@ void MEML_UART::SendState()
         serialised_app_state
     ));
 
+    std::printf("UART- Send state: %s\n", app_state_msg.c_str());
     _SendMessage(app_state_msg);
 }
 
@@ -274,4 +287,5 @@ void MEML_UART::_SendMessage(std::string &payload)
     for (auto &c: payload) {
         uart_tx(uart_tx_, c);
     }
+    uart_tx(uart_tx_, '\n');
 }
