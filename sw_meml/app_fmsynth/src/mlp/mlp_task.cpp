@@ -105,10 +105,10 @@ void mlp_train()
     if (!dataset.first[0].size() || !dataset.second[0].size()) {
         return;
     }
-    std::printf("MLP- Training...\n");
+    std::printf("MLP- Training for max %lu iterations...\n", gAppState.n_iterations);
     mlp_->Train(dataset,
               1.,
-              1000,
+              gAppState.n_iterations,
               0.0001,
               false);
     std::printf("MLP- Trained.\n");

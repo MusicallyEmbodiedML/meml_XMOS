@@ -34,9 +34,15 @@ void MEMLInterface::SetSlider(te_slider_idx idx, num_t value)
 {
     switch(idx) {
         case slider_randomSpeed: {
+            gAppState.exploration_range = value;
+            // TODO deprecate those local values!!!
             draw_speed_ = value;
             mlp_set_speed(draw_speed_);
             mlp_inference_nochannel(joystick_current_.as_struct);
+        } break;
+
+        case slider_nIterations: {
+            gAppState.n_iterations = value;
         } break;
 
         default: {
