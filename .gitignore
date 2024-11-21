@@ -20,3 +20,4 @@ bin
 /lib_i2s
 /lib_sw_pll
 /lib_xassert
+/lib_common
