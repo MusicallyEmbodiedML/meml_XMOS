@@ -26,6 +26,12 @@ MEML_UART::MEML_UART(uart_tx_t *uart_tx) :
     gAppState.last_error = 0;
     gAppState.n_iterations = 500;
 
+    // Ensure consistency of nn modes and expl modes
+    if (meml_interface) {
+        meml_interface->SetToggleButton(toggle_training, gAppState.current_nn_mode);
+        meml_interface->SetToggleButton(dropdown_explmode, gAppState.current_expl_mode);
+    }
+
     // Send state as soon as woken up
     SendState();
     std::printf("UART- State sent on bootup.\n");
@@ -146,26 +152,36 @@ bool MEML_UART::_ParseButton(std::vector<std::string> &buffer)
         return false;
     }
 
-    unsigned int btn_value = std::atoi(buffer[1].c_str());
-    if (btn_value != 0 && btn_value != 1) {
-        std::printf("UART- Wrong button value %s!\n", buffer[1].c_str());
-        return false;
+    int8_t btn_value = static_cast<int8_t>(std::atoi(buffer[1].c_str()));
+
+    bool btn_value_bool = false;
+    if (btn_index != dropdown_explmode) {
+        if (btn_value != 0 && btn_value != 1) {
+            std::printf("UART- Wrong button value %s!\n", buffer[1].c_str());
+            return false;
+        }
+        btn_value_bool = !static_cast<bool>(btn_value);
     }
-    bool btn_value_bool = !static_cast<bool>(btn_value);
 
     switch (btn_index) {
         case toggle_training:
         case toggle_savedata:
         {
-        meml_interface->SetToggleButton(static_cast<te_button_idx>(btn_index), btn_value_bool);
+            // Toggles
+            meml_interface->SetToggleButton(static_cast<te_button_idx>(btn_index), btn_value_bool);
         } break;
         case button_randomise:
         case button_reset:
         {
-        if (btn_value_bool && !button_states_[btn_index]) {
-            // Pressed
-            meml_interface->SetToggleButton(static_cast<te_button_idx>(btn_index), btn_value_bool);
-        }
+            // Buttons (on press)
+            if (btn_value_bool && !button_states_[btn_index]) {
+                // Pressed
+                meml_interface->SetToggleButton(static_cast<te_button_idx>(btn_index), btn_value_bool);
+            }
+        } break;
+        case dropdown_explmode: {
+            // Dropdowns
+            meml_interface->SetToggleButton(static_cast<te_button_idx>(btn_index), btn_value);
         } break;
         case toggle_discretise:
         case toggle_complex:

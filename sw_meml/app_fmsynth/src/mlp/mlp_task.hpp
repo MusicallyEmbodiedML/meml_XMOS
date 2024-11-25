@@ -30,6 +30,7 @@ void mlp_train();
 void mlp_draw(float speed = 0.01);
 void mlp_trigger_redraw();
 void mlp_set_speed(float speed);
+void mlp_set_expl_mode(te_expl_mode mode = gAppState.current_expl_mode);
 
 extern std::vector<float> mlp_stored_output;
 #endif  // __XC__

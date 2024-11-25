@@ -22,13 +22,12 @@ class MEMLInterface {
                   MEML_IF_CALLBACK_ATTR GenParamsFn_ptr_t gen_params_fn_ptr,
                   size_t nn_output_size);
     void SetPot(te_joystick_pot pot_n, num_t value);
-    void SetToggleButton(te_button_idx button_n, bool state);
+    void SetToggleButton(te_button_idx button_n, int8_t state);
     void SetSlider(te_slider_idx idx, num_t value);
 
  protected:
 
     // States
-    te_nn_mode mode_;
     bool joystick_inference_;
     union {
         ts_joystick_read as_struct;

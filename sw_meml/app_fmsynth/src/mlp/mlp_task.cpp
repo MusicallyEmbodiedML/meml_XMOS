@@ -10,10 +10,10 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
-#include <cassert>
 
 extern "C" {
     #include <xcore/channel.h>
+    #include "xassert.h"
 }
 
 
@@ -30,21 +30,21 @@ static const std::vector<std::string> layers_activfuncs = {
 };
 static const bool use_constant_weight_init = false;
 static const float constant_weight_init = 0;
-static constexpr enum {
-    mode_nnweights,
-    mode_pretrain
-} mode_ = mode_pretrain;
+static constexpr ts_joystick_read kZoom_mode_reset { 0.5, 0.5, 0.5 };
 
 // MLP memory
 static MLP<float> *mlp_ = nullptr;
 static char mlp_mem_[sizeof(MLP<float>)];
 static size_t n_output_params_ = 0;
 static MLP<float>::mlp_weights mlp_stored_weights_;
+static ts_joystick_read zoom_mode_centre_ = kZoom_mode_reset;
+static ts_joystick_read mlp_stored_input = kZoom_mode_reset;
 std::vector<float> mlp_stored_output;
-bool randomised_state_ = false;
-bool redraw_weights_ = true;
-bool flag_zoom_in_ = false;
-float speed_ = 1.0f;
+static bool randomised_state_ = false;
+static bool redraw_weights_ = true;
+static bool flag_zoom_in_ = false;
+static float speed_ = 1.0f;
+static te_expl_mode expl_mode_internal_ = expl_mode_pretrain;
 
 // Flash memory
 static XMOSFlash *flash_ = nullptr;
@@ -204,15 +204,22 @@ void mlp_draw(float speed)
         std::printf("MLP- Weights randomised.\n");
         redraw_weights_ = false;
     } else {
-        if (mode_ == mode_pretrain) {
+        if (expl_mode_internal_ == expl_mode_zoom) {
 
+            flag_zoom_in_ = true;
+            zoom_mode_centre_ = mlp_stored_input;
+
+        } else if (expl_mode_internal_ == expl_mode_pretrain) {
+
+            zoom_mode_centre_ = kZoom_mode_reset;
             flag_zoom_in_ = true;
             // Train network with only one data point at the centre
             mlp_pretrain_centre_();
             std::printf("MLP- Pretrained on centre (speed %f%%).\n", speed*100.f);
 
-        } else if (mode_ == mode_nnweights) {
+        } else if (expl_mode_internal_ == expl_mode_nnweights) {
 
+            zoom_mode_centre_ = kZoom_mode_reset;
             // Randomise weights less ("move" by speed)
             mlp_->MoveWeights(speed);
             std::printf("MLP- Weights moved %f%%.\n", speed*100.f);
@@ -260,20 +267,42 @@ void mlp_set_speed(float speed)
     speed_ = speed;
 }
 
+void mlp_set_expl_mode(te_expl_mode mode)
+{
+    expl_mode_internal_ = mode;
+    redraw_weights_ = true;
+    zoom_mode_centre_ = kZoom_mode_reset;
+}
+
 void mlp_inference_nochannel(ts_joystick_read joystick_read) {
 
-    static const auto zoom_in_ = [](float x) {
-        return (x - 0.5f) * speed_ + 0.5f;
+    // Function to zoom and offset by given range
+    static const auto zoom_in_ = [](float x, float move_by) {
+        float local_range = speed_;
+        float max_radius = (0.5f*speed_ + move_by) - 1.0f;
+        if (max_radius > 0) {
+            local_range -= max_radius;
+        }
+        float min_radius = -0.5f*speed_ + move_by;
+        if (min_radius < 0) {
+            local_range += min_radius;
+        }
+        // Scale and move
+        float y = (x - 0.5f) * local_range + move_by;
+        xassert(y >= 0 && "MLP- joystick scaling out of range");
+        xassert(y <= 1.f && "MLP- joystick scaling out of range");
+        return y;
     };
 
-#if 1
     // If we're zooming in, we want speed to shrink our view
     if (flag_zoom_in_) {
-        joystick_read.potX = zoom_in_(joystick_read.potX);
-        joystick_read.potY = zoom_in_(joystick_read.potY);
-        joystick_read.potRotate = zoom_in_(joystick_read.potRotate);
+        joystick_read.potX = zoom_in_(joystick_read.potX, zoom_mode_centre_.potX);
+        joystick_read.potY = zoom_in_(joystick_read.potY, zoom_mode_centre_.potY);
+        joystick_read.potRotate = zoom_in_(joystick_read.potRotate, zoom_mode_centre_.potRotate);
     }
-#endif
+
+        // Store current joystick read
+        mlp_stored_input = joystick_read;
 
     // Instantiate data in/out
     std::vector<num_t> input{
@@ -318,23 +347,7 @@ void mlp_inference_task(chanend_t dispatcher_nn,
         );
         std::printf("NN- Received joystick read in NN task.\n");
 
-        // Instantiate data in/out
-        std::vector<num_t> input{
-            joystick_read->potX,
-            joystick_read->potY,
-            joystick_read->potRotate,
-            1.f  // bias
-        };
-        std::vector<num_t> output(n_output_params_);
-        // Run model
-        mlp_->GetOutput(input, &output);
-
-        // Send result
-        chan_out_buf_byte(
-            nn_paramupdate,
-            reinterpret_cast<uint8_t *>(output.data()),
-            sizeof(num_t) * n_output_params_
-        );
+        mlp_inference_nochannel(*joystick_read);
 
     }  // while(true)
 }

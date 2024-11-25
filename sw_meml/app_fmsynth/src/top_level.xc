@@ -116,12 +116,12 @@ int main(void){
             [[hwtimer]]
             timer testsend_timer;
 
-            // Init tasks
-            uart_init();
+            // Init tasks (in reverse call order)
             mlp_init(interface_fmsynth, kN_nn_params);
             interface_init(
                 interface_fmsynth
             );
+            uart_init();
             // Runtime tasks
             par {
                 tile_0_main(i2s_remote);

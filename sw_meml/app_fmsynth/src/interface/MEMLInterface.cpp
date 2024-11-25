@@ -20,7 +20,6 @@ extern "C" {
 MEMLInterface::MEMLInterface(chanend_t interface_fmsynth,
             MEML_IF_CALLBACK_ATTR GenParamsFn_ptr_t gen_params_fn_ptr,
             size_t nn_output_size) :
-        mode_(mode_inference),
         joystick_inference_(true),
         joystick_current_({ { 0.5, 0.5, 0.5 } }),
         interface_fmsynth_(interface_fmsynth),
@@ -62,30 +61,30 @@ void MEMLInterface::SetPot(te_joystick_pot pot_n, num_t value)
     joystick_current_.as_array[pot_n] = value;
 
     // If inference, run inference here
-    //if (mode_ == mode_inference) {
+    //if (gAppState.current_nn_mode== mode_inference) {
     if (joystick_inference_) {
         mlp_inference_nochannel(joystick_current_.as_struct);
     }
 }
 
-void MEMLInterface::SetToggleButton(te_button_idx button_n, bool state)
+void MEMLInterface::SetToggleButton(te_button_idx button_n, int8_t state)
 {
     switch(button_n) {
 
         case toggle_training: {
-            if (state == mode_inference && mode_ == mode_training) {
+            if (state == mode_inference && gAppState.current_nn_mode == mode_training) {
                 mlp_train();
                 mlp_inference_nochannel(joystick_current_.as_struct);
             }
-            mode_ = static_cast<te_nn_mode>(state);
-            std::string dbg_mode(( mode_ == mode_training ) ? "training" : "inference");
+            gAppState.current_nn_mode = static_cast<te_nn_mode>(state);
+            std::string dbg_mode(( gAppState.current_nn_mode == mode_training ) ? "training" : "inference");
             std::printf("INTF- Mode: %s\n", dbg_mode.c_str());
 
         } break;
 
         case button_randomise: {
-            if (mode_ == mode_training) {
-#if 0
+            if (gAppState.current_nn_mode == mode_training) {
+#if 0  // Legacy randomiser-randomise the parameters directly
                 // Generate random params
                 std::vector<float> rand_params(nn_output_size_);
                 if (gen_params_fn_ptr_) {
@@ -113,7 +112,7 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, bool state)
         } break;
 
         case toggle_savedata: {
-            if (mode_ == mode_training) {
+            if (gAppState.current_nn_mode == mode_training) {
                 if (state) {  // Button pressed/toggle on
                     joystick_inference_ = false;
                     std::printf("INTF- Move the joystick to where you want it...\n");
@@ -143,7 +142,26 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, bool state)
             std::printf("INTF- Reset\n");
             Dataset::Clear();
             mlp_trigger_redraw();
-        }
+        } break;
+
+        case dropdown_explmode: {
+            te_expl_mode expl_mode = static_cast<te_expl_mode>(state);
+            std::string dbg_expl_mode;
+            switch(expl_mode) {
+                case expl_mode_nnweights: {
+                    dbg_expl_mode = "nnweights";
+                } break;
+                case expl_mode_pretrain: {
+                    dbg_expl_mode = "pretrain";
+                } break;
+                case expl_mode_zoom: {
+                    dbg_expl_mode = "zoom";
+                } break;
+                default: {}
+            }
+            std::printf("INTF- Exploration_mode '%s'.\n", dbg_expl_mode.c_str());
+            mlp_set_expl_mode(expl_mode);
+        } break;
 
         default: {}
     }
