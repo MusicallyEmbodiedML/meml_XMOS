@@ -125,10 +125,9 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, int8_t state)
                             joystick_current_.as_struct.potRotate,
                             1.f  // bias
                         };
-                        Dataset::Add(
+                        mlp_add_data_point(
                             input, mlp_stored_output
                         );
-                        mlp_trigger_redraw();
                         std::printf("INTF- Saved data point\n");
                     } else {
                         std::printf("INTF- Data point skipped\n");
@@ -140,8 +139,7 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, int8_t state)
 
         case button_reset: {
             std::printf("INTF- Reset\n");
-            Dataset::Clear();
-            mlp_trigger_redraw();
+            mlp_clear();
         } break;
 
         case dropdown_explmode: {

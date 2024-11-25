@@ -32,6 +32,10 @@ static const bool use_constant_weight_init = false;
 static const float constant_weight_init = 0;
 static constexpr ts_joystick_read kZoom_mode_reset { 0.5, 0.5, 0.5 };
 
+// Dataset memory
+static char dataset_mem_[sizeof(Dataset)];
+static Dataset *dataset_ = nullptr;
+
 // MLP memory
 static MLP<float> *mlp_ = nullptr;
 static char mlp_mem_[sizeof(MLP<float>)];
@@ -58,7 +62,6 @@ static const std::vector<uint8_t> payload_signature_ref = {'b', 'e', 't', 'a'};
 
 chanend_t nn_paramupdate_ = 0;
 
-
 void mlp_init(chanend_t nn_paramupdate, size_t n_params)
 {
     const std::vector<size_t> layers_nodes = {
@@ -70,6 +73,7 @@ void mlp_init(chanend_t nn_paramupdate, size_t n_params)
     n_output_params_ = n_params;
 
     // Instantiate objects
+    dataset_ = new(dataset_mem_) Dataset();
     mlp_ = new (mlp_mem_) MLP<float>(
         layers_nodes,
         layers_activfuncs,
@@ -87,6 +91,12 @@ void mlp_init(chanend_t nn_paramupdate, size_t n_params)
     mlp_load_all_();
 }
 
+
+static void mlp_trigger_redraw_()
+{
+    redraw_weights_ = true;
+}
+
 void mlp_train()
 {
     // Restore weights first
@@ -96,7 +106,7 @@ void mlp_train()
         std::printf("MLP- Restored pre-random weights.\n");
     }
 
-    MLP<float>::training_pair_t dataset(Dataset::GetFeatures(), Dataset::GetLabels());
+    MLP<float>::training_pair_t dataset(dataset_->GetFeatures(), dataset_->GetLabels());
 
     std::printf("MLP- Feature size %d, label size %d.\n", dataset.first.size(), dataset.second.size());
     if (!dataset.first.size() || !dataset.second.size()) {
@@ -143,10 +153,10 @@ void mlp_load_all_()
     }
 
     if (data_found) {
-        Dataset::GetFeatures().clear();
-        r_head = Serialise::ToVector2D(r_head, *flash_buffer_ptr, Dataset::GetFeatures());
-        Dataset::GetLabels().clear();
-        r_head = Serialise::ToVector2D(r_head, *flash_buffer_ptr, Dataset::GetLabels());
+        dataset_->GetFeatures().clear();
+        r_head = Serialise::ToVector2D(r_head, *flash_buffer_ptr, dataset_->GetFeatures());
+        dataset_->GetLabels().clear();
+        r_head = Serialise::ToVector2D(r_head, *flash_buffer_ptr, dataset_->GetLabels());
         r_head = mlp_->FromSerialised(r_head, *flash_buffer_ptr);
         std::printf("MLP- TODO print loaded data info\n");
     } else {
@@ -164,8 +174,8 @@ void mlp_save_all_()
     w_head += kSigLength;
 
     // Serialise data
-    w_head = Serialise::FromVector2D(w_head, Dataset::GetFeatures(), flash_buffer);
-    w_head = Serialise::FromVector2D(w_head, Dataset::GetLabels(), flash_buffer);
+    w_head = Serialise::FromVector2D(w_head, dataset_->GetFeatures(), flash_buffer);
+    w_head = Serialise::FromVector2D(w_head, dataset_->GetLabels(), flash_buffer);
     w_head = mlp_->Serialise(w_head, flash_buffer);
 
     // Dump data to buffer
@@ -236,6 +246,18 @@ void mlp_draw(float speed)
     // }
 }
 
+void mlp_add_data_point(const std::vector<float> &in, const std::vector<float> &out)
+{
+    dataset_->Add(in, out);
+    mlp_trigger_redraw_();
+}
+
+void mlp_clear()
+{
+    dataset_->Clear();
+    mlp_trigger_redraw_();
+}
+
 void mlp_pretrain_centre_()
 {
     std::vector<std::vector<float>> features {
@@ -254,11 +276,6 @@ void mlp_pretrain_centre_()
               1000,
               0.00001,
               false);
-}
-
-void mlp_trigger_redraw()
-{
-    redraw_weights_ = true;
 }
 
 void mlp_set_speed(float speed)

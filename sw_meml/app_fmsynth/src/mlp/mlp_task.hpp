@@ -28,7 +28,8 @@ extern "C" {
 void mlp_inference_nochannel(ts_joystick_read joystick_read);
 void mlp_train();
 void mlp_draw(float speed = 0.01);
-void mlp_trigger_redraw();
+void mlp_add_data_point(const std::vector<float> &in, const std::vector<float> &out);
+void mlp_clear();
 void mlp_set_speed(float speed);
 void mlp_set_expl_mode(te_expl_mode mode = gAppState.current_expl_mode);
 
