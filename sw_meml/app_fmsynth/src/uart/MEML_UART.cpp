@@ -286,6 +286,19 @@ void MEML_UART::_SendMessage(std::string &payload)
 {
     for (auto &c: payload) {
         uart_tx(uart_tx_, c);
+        std::printf("%c", c);
     }
     uart_tx(uart_tx_, '\n');
+    std::printf("\n");
+}
+
+void MEML_UART::SendUIInfo(te_ui_info idx, const std::vector<std::string> &values)
+{
+    // Append UI info idx
+    std::vector<std::string> values_with_idx{std::to_string(idx)};
+    values_with_idx.insert(values_with_idx.end(), values.begin(), values.end());
+    // Append message type and send
+    std::string values_string(UART_Common::ConcatMessage(values_with_idx));
+    std::string payload = UART_Common::FormatMessageWithType(UART_Common::msgType::ui_info, values_string);
+    _SendMessage(payload);
 }

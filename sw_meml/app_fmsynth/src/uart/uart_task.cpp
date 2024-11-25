@@ -106,3 +106,11 @@ void uart_tx_task(hwtimer_t testsend_timer)
         //uart_tx(&uart_tx_ctx_, '.');
     }
 }
+
+void uart_update_loss(float loss)
+{
+    if (meml_uart_ptr_) {
+        std::vector<std::string> loss_payload{ std::to_string(loss) };
+        meml_uart_ptr_->SendUIInfo(ui_last_error, loss_payload);
+    }
+}

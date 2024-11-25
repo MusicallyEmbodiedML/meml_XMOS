@@ -23,6 +23,7 @@ class MEML_UART {
     bool ParseAndSend(std::vector<std::string> &buffer);
     void RequestState();
     void SendState();
+    void SendUIInfo(te_ui_info idx, const std::vector<std::string> &values);
 
  protected:
 

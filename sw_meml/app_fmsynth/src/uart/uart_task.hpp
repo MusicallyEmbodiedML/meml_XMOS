@@ -12,5 +12,7 @@ extern "C" {
     void uart_tx_task(hwtimer_t testsend_timer);
 }
 
+void uart_update_loss(float loss);
+
 
 #endif

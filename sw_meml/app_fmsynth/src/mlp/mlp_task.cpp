@@ -5,6 +5,7 @@
 #include "utils/Flash.hpp"
 #include "utils/Serialise.hpp"
 #include "../chans_and_data.h"
+#include "../uart/uart_task.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -106,7 +107,7 @@ void mlp_train()
         return;
     }
     std::printf("MLP- Training for max %lu iterations...\n", gAppState.n_iterations);
-    mlp_->Train(dataset,
+    num_t loss = mlp_->Train(dataset,
               1.,
               gAppState.n_iterations,
               0.0001,
@@ -114,6 +115,10 @@ void mlp_train()
     std::printf("MLP- Trained.\n");
 
     mlp_save_all_();
+
+    // Report loss back to state and UI
+    gAppState.last_error = loss;
+    uart_update_loss(loss);
 
     flag_zoom_in_ = false;
 }
