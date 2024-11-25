@@ -32,6 +32,8 @@ void mlp_add_data_point(const std::vector<float> &in, const std::vector<float> &
 void mlp_clear();
 void mlp_set_speed(float speed);
 void mlp_set_expl_mode(te_expl_mode mode = gAppState.current_expl_mode);
+void mlp_set_model_idx(size_t idx);
+void mlp_set_dataset_idx(size_t idx);
 
 extern std::vector<float> mlp_stored_output;
 #endif  // __XC__

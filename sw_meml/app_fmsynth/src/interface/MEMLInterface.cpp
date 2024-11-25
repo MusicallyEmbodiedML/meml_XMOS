@@ -142,7 +142,7 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, int8_t state)
             mlp_clear();
         } break;
 
-        case dropdown_explmode: {
+        case toggle_explmode: {
             te_expl_mode expl_mode = static_cast<te_expl_mode>(state);
             std::string dbg_expl_mode;
             switch(expl_mode) {
@@ -159,6 +159,14 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, int8_t state)
             }
             std::printf("INTF- Exploration_mode '%s'.\n", dbg_expl_mode.c_str());
             mlp_set_expl_mode(expl_mode);
+        } break;
+
+        case toggle_dataset: {
+            mlp_set_dataset_idx(state);
+        } break;
+
+        case toggle_model: {
+            mlp_set_model_idx(state);
         } break;
 
         default: {}

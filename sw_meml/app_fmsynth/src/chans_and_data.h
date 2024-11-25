@@ -5,8 +5,6 @@
 #include "common_defs.h"
 
 extern ts_app_state gAppState;
-extern const size_t kApp_MaxModels;
-extern const size_t kApp_MaxDatasets;
 extern const size_t kN_nn_params;
 
 #endif //__CHANS_AND_DATA_H__

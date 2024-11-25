@@ -29,7 +29,7 @@ MEML_UART::MEML_UART(uart_tx_t *uart_tx) :
     // Ensure consistency of nn modes and expl modes
     if (meml_interface) {
         meml_interface->SetToggleButton(toggle_training, gAppState.current_nn_mode);
-        meml_interface->SetToggleButton(dropdown_explmode, gAppState.current_expl_mode);
+        meml_interface->SetToggleButton(toggle_explmode, gAppState.current_expl_mode);
     }
 
     // Send state as soon as woken up
@@ -155,7 +155,9 @@ bool MEML_UART::_ParseButton(std::vector<std::string> &buffer)
     int8_t btn_value = static_cast<int8_t>(std::atoi(buffer[1].c_str()));
 
     bool btn_value_bool = false;
-    if (btn_index != dropdown_explmode) {
+    if (btn_index != toggle_explmode &&
+        btn_index != toggle_dataset &&
+        btn_index != toggle_model) {
         if (btn_value != 0 && btn_value != 1) {
             std::printf("UART- Wrong button value %s!\n", buffer[1].c_str());
             return false;
@@ -179,7 +181,9 @@ bool MEML_UART::_ParseButton(std::vector<std::string> &buffer)
                 meml_interface->SetToggleButton(static_cast<te_button_idx>(btn_index), btn_value_bool);
             }
         } break;
-        case dropdown_explmode: {
+        case toggle_explmode:
+        case toggle_dataset:
+        case toggle_model: {
             // Dropdowns
             meml_interface->SetToggleButton(static_cast<te_button_idx>(btn_index), btn_value);
         } break;
