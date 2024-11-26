@@ -3,6 +3,7 @@
 #include <vector>
 #include <cmath>
 #include <cstdio>
+#include <string>
 
 extern "C" {
     #include <xcore/channel.h>
@@ -132,6 +133,29 @@ void audio_app_paramupdate(chanend_t fmsynth_paramupdate)
         if (fmsyn != nullptr) {
             fmsyn->mapParameters(params);
             //std::printf("FMSynth- Params are mapped.\n");
+        }
+#endif
+    }
+}
+
+void audio_app_midi(chanend_t interface_midi)
+{
+    static ts_midi_note midi_note;
+
+    while (true) {
+#if 1
+        chan_in_buf_byte(
+            interface_midi,
+            reinterpret_cast<unsigned char *>(&midi_note),
+            sizeof(ts_midi_note)
+        );
+
+        // std::string note_on = (midi_note.velocity > 0) ? "on" : "off";
+        // std::printf("MIDI- Note %d %s.\n",
+        //         midi_note.note_number, note_on.c_str());
+
+        if (fmsyn != nullptr) {
+            fmsyn->AddMIDINote(midi_note);
         }
 #endif
     }

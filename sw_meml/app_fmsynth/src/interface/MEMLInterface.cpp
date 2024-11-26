@@ -18,11 +18,13 @@ extern "C" {
 
 
 MEMLInterface::MEMLInterface(chanend_t interface_fmsynth,
+            chanend_t interface_midi,
             MEML_IF_CALLBACK_ATTR GenParamsFn_ptr_t gen_params_fn_ptr,
             size_t nn_output_size) :
         joystick_inference_(true),
         joystick_current_({ { 0.5, 0.5, 0.5 } }),
         interface_fmsynth_(interface_fmsynth),
+        interface_midi_(interface_midi),
         gen_params_fn_ptr_(gen_params_fn_ptr),
         nn_output_size_(nn_output_size),
         draw_speed_(1.f)
@@ -176,4 +178,15 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, int8_t state)
 
         default: {}
     }
+}
+
+void MEMLInterface::SendMIDI(ts_midi_note midi_note)
+{
+#if 0
+    chan_out_buf_byte(
+        interface_midi_,
+        reinterpret_cast<uint8_t *>(&midi_note),
+        sizeof(midi_note)
+    );
+#endif
 }

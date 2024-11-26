@@ -239,6 +239,34 @@ void MEML_UART::_ParseState(std::vector<std::string> &buffer)
     gAppState = new_state;
 }
 
+bool MEML_UART::_ParseMIDINote(std::vector<std::string> &buffer)
+{
+    static constexpr float kVelocity_scaling = 1./128.;
+
+    bool ret = true;
+
+    if (buffer.size() < 2) {
+        std::printf("UART- malformed MIDI note.");
+        return false;
+    }
+
+    size_t note_number = std::stoi(buffer[0]);
+    float note_velocity = std::stof(buffer[1]);
+    note_velocity *= kVelocity_scaling;
+    if (note_velocity <= kVelocity_scaling) {
+        note_velocity = 0;
+    }
+
+    ts_midi_note midi_note {
+        note_number,
+        note_velocity
+    };
+
+    meml_interface->SendMIDI(midi_note);
+
+    return ret;
+}
+
 bool MEML_UART::ParseAndSend(std::vector<std::string> &buffer)
 {
     if (!buffer.size()) {
@@ -268,6 +296,9 @@ bool MEML_UART::ParseAndSend(std::vector<std::string> &buffer)
         } break;
         case UART_Common::state_dump: {
             _ParseState(payload);
+        } break;
+        case UART_Common::midi_note: {
+            _ParseMIDINote(payload);
         } break;
         default: {
             //std::printf("UART- message type %c unknown", switch_token);
@@ -323,3 +354,4 @@ void MEML_UART::SendUIInfo(te_ui_info idx, const std::vector<std::string> &value
     std::string payload = UART_Common::FormatMessageWithType(UART_Common::msgType::ui_info, values_string);
     _SendMessage(payload);
 }
+

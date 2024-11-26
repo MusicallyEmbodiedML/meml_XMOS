@@ -32,6 +32,7 @@ extern void tile_1_main(chanend c);
 extern void audio_loop(streaming chanend);
 extern void audio_app_init(float sample_rate);
 extern void audio_app_paramupdate(chanend fmsynth_paramupdate);
+extern void audio_app_midi(chanend interface_midi);
 // UART tasks
 extern void uart_init();
 extern void uart_rx_task();
@@ -39,7 +40,7 @@ extern void uart_tx_task([[hwtimer]] timer testsend_timer);
 // MLP tasks
 extern void mlp_init(chanend interface_fmsynth, size_t n_params);
 // Interface
-extern void interface_init(chanend interface_fmsynth);
+extern void interface_init(chanend interface_fmsynth, chanend interface_midi);
 
 
 /**
@@ -108,6 +109,7 @@ int main(void){
     // Inter-tile channels
     chan i2s_remote;
     chan interface_fmsynth;
+    chan interface_midi;
     par{
         on tile[0]: {
             // Tile 0 channels
@@ -119,7 +121,8 @@ int main(void){
             // Init tasks (in reverse call order)
             mlp_init(interface_fmsynth, kN_nn_params);
             interface_init(
-                interface_fmsynth
+                interface_fmsynth,
+                interface_midi
             );
             uart_init();
             // Runtime tasks
@@ -139,6 +142,7 @@ int main(void){
                 i2s_loopback(i_i2s, audio_in);
                 i2s_frame_master(i_i2s, p_dac, NUM_I2S_LINES, p_adc, NUM_I2S_LINES, DATA_BITS, p_bclk, p_lrclk, p_mclk, bclk);
                 audio_app_paramupdate(interface_fmsynth);
+                //audio_app_midi(interface_midi);
             }
         }
     }

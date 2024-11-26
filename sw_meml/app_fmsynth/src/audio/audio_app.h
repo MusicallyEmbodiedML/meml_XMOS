@@ -15,6 +15,9 @@ extern void audio_loop(chanend_t i2s_audio_in);
 extern void audio_app_paramupdate(
     chanend_t fmsynth_paramupdate
 );
+extern void audio_app_midi(
+    chanend_t interface_midi
+);
 
 typedef float sample_t;
 

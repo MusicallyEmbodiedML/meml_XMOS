@@ -19,11 +19,13 @@ class MEMLInterface {
     using GenParamsFn_ptr_t = void (*)(std::vector<float>&);
 
     MEMLInterface(chanend_t interface_fmsynth,
+                  chanend_t interface_midi,
                   MEML_IF_CALLBACK_ATTR GenParamsFn_ptr_t gen_params_fn_ptr,
                   size_t nn_output_size);
     void SetPot(te_joystick_pot pot_n, num_t value);
     void SetToggleButton(te_button_idx button_n, int8_t state);
     void SetSlider(te_slider_idx idx, num_t value);
+    void SendMIDI(ts_midi_note midi_note);
 
  protected:
 
@@ -37,6 +39,7 @@ class MEMLInterface {
     // Channels for outside comms
     //chanend_t interface_nn_joystick_;
     chanend_t interface_fmsynth_;
+    chanend_t interface_midi_;
 
     MEML_IF_CALLBACK_ATTR GenParamsFn_ptr_t gen_params_fn_ptr_;
 

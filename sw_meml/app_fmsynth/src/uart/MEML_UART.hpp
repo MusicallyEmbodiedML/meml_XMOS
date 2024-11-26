@@ -42,6 +42,7 @@ class MEML_UART {
     bool _ParseButton(std::vector<std::string> &buffer);
     bool _ParseSlider(std::vector<std::string> &buffer);
     void _ParseState(std::vector<std::string> &buffer);
+    bool _ParseMIDINote(std::vector<std::string> &buffer);
     // TX functions
     void _SendMessage(std::string &payload);
 };

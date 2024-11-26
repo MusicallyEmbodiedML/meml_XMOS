@@ -15,7 +15,8 @@ extern "C" {
 
 
 void interface_init(
-    chanend_t interface_fmsynth);
+    chanend_t interface_fmsynth,
+    chanend_t interface_midi);
 
 }  // extern "C"
 
