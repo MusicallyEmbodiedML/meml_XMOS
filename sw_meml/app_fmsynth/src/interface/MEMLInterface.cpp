@@ -137,9 +137,13 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, int8_t state)
             }
         } break;
 
-        case button_reset: {
-            std::printf("INTF- Reset\n");
-            mlp_clear();
+        case button_cleardata: {
+            mlp_clear_data();
+        } break;
+
+        case button_clearmodel: {
+            mlp_clear_model();
+            mlp_inference_nochannel(joystick_current_.as_struct);
         } break;
 
         case toggle_explmode: {
@@ -167,6 +171,7 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, int8_t state)
 
         case toggle_model: {
             mlp_set_model_idx(state);
+            mlp_inference_nochannel(joystick_current_.as_struct);
         } break;
 
         default: {}

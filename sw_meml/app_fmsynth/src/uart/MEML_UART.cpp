@@ -148,7 +148,7 @@ bool MEML_UART::_ParseButton(std::vector<std::string> &buffer)
 
     unsigned int btn_index = std::atoi(buffer[0].c_str());
     if (btn_index >= button_nButtons) {
-        std::printf("UART- Wrong buttom index %s!\n", buffer[0].c_str());
+        std::printf("UART- Wrong button index %s!\n", buffer[0].c_str());
         return false;
     }
 
@@ -173,7 +173,8 @@ bool MEML_UART::_ParseButton(std::vector<std::string> &buffer)
             meml_interface->SetToggleButton(static_cast<te_button_idx>(btn_index), btn_value_bool);
         } break;
         case button_randomise:
-        case button_reset:
+        case button_cleardata:
+        case button_clearmodel:
         {
             // Buttons (on press)
             if (btn_value_bool && !button_states_[btn_index]) {

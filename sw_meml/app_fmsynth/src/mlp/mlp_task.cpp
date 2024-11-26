@@ -258,10 +258,17 @@ void mlp_add_data_point(const std::vector<float> &in, const std::vector<float> &
     mlp_trigger_redraw_();
 }
 
-void mlp_clear()
+void mlp_clear_data()
 {
     dataset_[ds_n_]->Clear();
-    mlp_trigger_redraw_();
+    std::printf("MLP- Dataset %d cleared.\n", ds_n_);
+}
+
+void mlp_clear_model()
+{
+    mlp_[nn_n_]->DrawWeights();
+    flag_zoom_in_ = false;
+    std::printf("MLP- Model %d re-initialised.\n", nn_n_);
 }
 
 void mlp_pretrain_centre_()
