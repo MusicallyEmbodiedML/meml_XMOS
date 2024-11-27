@@ -15,7 +15,7 @@ extern "C" {
 #include "../chans_and_data.h"
 #include "../mlp/mlp_task.hpp"
 
-#include "FMSynth.hpp"
+#include "matrixMix.hpp"
 
 ///
 // C++ HELPER CLASSES
@@ -62,7 +62,7 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, bool state)
             if (mode_ == mode_training) {
             // Generate random params
             std::vector<float> rand_params(kN_synthparams);
-            FMSynth::GenParams(rand_params);
+            MaxtrixMixApp::GenParams(rand_params);
 
             // Send them down to fmsynth
             chan_out_buf_byte(
