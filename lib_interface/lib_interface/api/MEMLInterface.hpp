@@ -26,6 +26,7 @@ class MEMLInterface {
     void SetToggleButton(te_button_idx button_n, int8_t state);
     void SetSlider(te_slider_idx idx, num_t value);
     void SendMIDI(ts_midi_note midi_note);
+    void EnableMIDI(bool midi_on = true);
 
  protected:
 
@@ -45,6 +46,7 @@ class MEMLInterface {
 
     const size_t nn_output_size_;
     num_t draw_speed_;
+    bool midi_on_;
 };
 
 

@@ -9,6 +9,7 @@
 #include "audio/audio_app.h"
 #include "codec_setup.h"
 #include "audio/audio_buffers.h"
+#include "chans_and_data.h"
 
 #ifndef XMOS_I2S_MASTER
 #define XMOS_I2S_MASTER         1
@@ -34,7 +35,7 @@ extern void audio_app_paramupdate(chanend fmsynth_paramupdate);
 extern void uart_init();
 extern void uart_rx_task();
 // MLP tasks
-extern void mlp_init(chanend interface_fmsynth);
+extern void mlp_init(chanend interface_fmsynth, unsigned int n_params);
 // Interface
 extern void interface_init(chanend interface_fmsynth);
 
@@ -111,7 +112,7 @@ int main(void){
 
             // Init tasks
             uart_init();
-            mlp_init(interface_fmsynth);
+            mlp_init(interface_fmsynth, kN_nn_params);
             interface_init(
                 interface_fmsynth
             );

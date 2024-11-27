@@ -40,7 +40,7 @@ extern void uart_tx_task([[hwtimer]] timer testsend_timer);
 // MLP tasks
 extern void mlp_init(chanend interface_fmsynth, size_t n_params);
 // Interface
-extern void interface_init(chanend interface_fmsynth, chanend interface_midi);
+extern void interface_init_with_midi(chanend interface_fmsynth, chanend interface_midi);
 
 
 /**
@@ -120,7 +120,7 @@ int main(void){
 
             // Init tasks (in reverse call order)
             mlp_init(interface_fmsynth, kN_nn_params);
-            interface_init(
+            interface_init_with_midi(
                 interface_fmsynth,
                 interface_midi
             );

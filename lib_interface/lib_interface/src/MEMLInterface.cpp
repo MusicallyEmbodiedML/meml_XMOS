@@ -26,8 +26,14 @@ MEMLInterface::MEMLInterface(chanend_t interface_fmsynth,
         interface_midi_(interface_midi),
         gen_params_fn_ptr_(gen_params_fn_ptr),
         nn_output_size_(nn_output_size),
-        draw_speed_(1.f)
+        draw_speed_(1.f),
+        midi_on_(false)
 {
+}
+
+void MEMLInterface::EnableMIDI(bool midi_on)
+{
+    midi_on_ = midi_on;
 }
 
 void MEMLInterface::SetSlider(te_slider_idx idx, num_t value)
@@ -181,9 +187,11 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, int8_t state)
 
 void MEMLInterface::SendMIDI(ts_midi_note midi_note)
 {
-    chan_out_buf_byte(
-        interface_midi_,
-        reinterpret_cast<uint8_t *>(&midi_note),
-        sizeof(midi_note)
-    );
+    if (midi_on_) {
+        chan_out_buf_byte(
+            interface_midi_,
+            reinterpret_cast<uint8_t *>(&midi_note),
+            sizeof(midi_note)
+        );
+    }
 }

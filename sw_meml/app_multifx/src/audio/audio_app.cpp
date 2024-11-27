@@ -10,7 +10,7 @@ extern "C" {
     #include <xscope.h>
 }
 
-#include "../chans_and_data.h"
+#include "chans_and_data.h"
 #include "audio_buffers.h"
 
 // Include audio components
@@ -126,14 +126,14 @@ void audio_loop(chanend_t i2s_audio_in)
 
 void audio_app_paramupdate(chanend_t fmsynth_paramupdate)
 {
-    std::vector<num_t> params(kN_synthparams);
+    std::vector<float> params(kN_nn_params);
 
     while (true) {
 #if 1
         chan_in_buf_byte(
             fmsynth_paramupdate,
             reinterpret_cast<unsigned char *>(params.data()),
-            sizeof(num_t) * kN_synthparams
+            sizeof(float) * kN_nn_params
         );
 
         // debug_printf("FMSynth- Something is received.\n");

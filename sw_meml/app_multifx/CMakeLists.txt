@@ -8,10 +8,11 @@ set(APP_DEPENDENT_MODULES           "lib_board_support"
                                     "lib_i2s"
                                     "lib_uart_c"
                                     "lib_mlp"
-                                    "lib_synth")
+                                    "lib_synth"
+                                    "lib_common"
+                                    "lib_interface")
 
 set(APP_COMPILER_FLAGS              -O3
-                
                                     -report
                                     -DBOARD_SUPPORT_BOARD=XK_EVK_XU316
                                     -DXMOS_I2S_MASTER=ON
