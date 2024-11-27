@@ -150,9 +150,9 @@ void audio_app_midi(chanend_t interface_midi)
             sizeof(ts_midi_note)
         );
 
-        std::string note_on = (midi_note.velocity > 0) ? "on" : "off";
-        std::printf("MIDI- Note %d %s.\n",
-                midi_note.note_number, note_on.c_str());
+        //std::string note_on = (midi_note.velocity > 0) ? "on" : "off";
+        //std::printf("MIDI- Note %d %s.\n",
+        //        midi_note.note_number, note_on.c_str());
 
         if (fmsyn != nullptr) {
             fmsyn->AddMIDINote(midi_note);
