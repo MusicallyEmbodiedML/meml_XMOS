@@ -4,8 +4,8 @@
 #include "Dataset.hpp"
 #include "utils/Flash.hpp"
 #include "utils/Serialise.hpp"
-#include "../chans_and_data.h"
-#include "../uart/uart_task.hpp"
+#include "common_defs.h"
+#include "uart_task.hpp"
 
 #include <algorithm>
 #include <cmath>

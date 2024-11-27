@@ -6,7 +6,7 @@ extern "C" {
 }
 
 
-#include "../chans_and_data.h"
+#include "common_defs.h"
 #include "Data.h"
 #include <cstdint>
 #include <vector>

@@ -9,7 +9,7 @@ extern "C" {
 #include <string>
 #include <cstring>
 
-#include "../chans_and_data.h"
+#include "common_defs.h"
 #include "UART_Common.hpp"
 
 class MEML_UART {

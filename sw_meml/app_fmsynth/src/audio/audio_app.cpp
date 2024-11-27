@@ -11,7 +11,7 @@ extern "C" {
     #include <xscope.h>
 }
 
-#include "../chans_and_data.h"
+#include "chans_and_data.h"
 #include "Data.h"
 #include "audio_buffers.h"
 // Include audio components

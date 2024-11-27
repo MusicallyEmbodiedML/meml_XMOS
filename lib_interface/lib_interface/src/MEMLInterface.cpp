@@ -12,9 +12,8 @@ extern "C" {
 #include <cmath>
 
 // Internal C++ includes
-#include "../chans_and_data.h"
-#include "../mlp/mlp_task.hpp"
-#include "../mlp/Dataset.hpp"
+#include "chans_and_data.h"
+#include "mlp_task.hpp"
 
 
 MEMLInterface::MEMLInterface(chanend_t interface_fmsynth,

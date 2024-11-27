@@ -1,7 +1,7 @@
 #include "MEML_UART.hpp"
 
-#include "../interface/interface.hpp"
-#include "../chans_and_data.h"
+#include "interface.hpp"
+#include "chans_and_data.h"
 
 #include <string>
 #include <cstring>

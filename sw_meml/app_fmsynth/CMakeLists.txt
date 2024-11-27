@@ -10,6 +10,7 @@ set(APP_DEPENDENT_MODULES           "lib_board_support"
                                     "lib_mlp"
                                     "lib_synth"
                                     "lib_xassert"
+                                    "lib_interface"
                                     "MusicallyEmbodiedML/lib_common")
 
 set(APP_COMPILER_FLAGS              -O0

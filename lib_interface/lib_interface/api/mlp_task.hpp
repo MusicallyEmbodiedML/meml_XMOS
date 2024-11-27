@@ -1,7 +1,7 @@
 #ifndef __MLP_TASK_HPP__
 #define __MLP_TASK_HPP__
 
-#include "../chans_and_data.h"
+#include "chans_and_data.h"
 #include <vector>
 
 extern "C" {
