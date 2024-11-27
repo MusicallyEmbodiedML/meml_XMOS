@@ -17,6 +17,7 @@ extern "C" {
 
 
 MEMLInterface::MEMLInterface(chanend_t interface_fmsynth,
+                             chanend_t interface_pulse,
             chanend_t interface_midi,
             MEML_IF_CALLBACK_ATTR GenParamsFn_ptr_t gen_params_fn_ptr,
             size_t nn_output_size) :
@@ -27,13 +28,19 @@ MEMLInterface::MEMLInterface(chanend_t interface_fmsynth,
         gen_params_fn_ptr_(gen_params_fn_ptr),
         nn_output_size_(nn_output_size),
         draw_speed_(1.f),
-        midi_on_(false)
+        midi_on_(false),
+        pulse_on_(false)
 {
 }
 
 void MEMLInterface::EnableMIDI(bool midi_on)
 {
     midi_on_ = midi_on;
+}
+
+void MEMLInterface::EnablePulse(bool pulse_on)
+{
+    pulse_on_ = pulse_on;
 }
 
 void MEMLInterface::SetSlider(te_slider_idx idx, num_t value)
@@ -74,6 +81,13 @@ void MEMLInterface::SetPot(te_joystick_pot pot_n, num_t value)
     }
 }
 
+void MEMLInterface::SetPulse(int32_t pulse)
+{
+    if (pulse_on_) {
+        //std::printf("INTF- Pulse %ld\n", pulse);
+        chan_out_word(interface_pulse_, pulse);
+    }
+}
 void MEMLInterface::SetToggleButton(te_button_idx button_n, int8_t state)
 {
     switch(button_n) {

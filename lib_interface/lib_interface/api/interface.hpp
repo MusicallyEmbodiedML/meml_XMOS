@@ -21,6 +21,10 @@ void interface_init_with_midi(
     chanend_t interface_fmsynth,
     chanend_t interface_midi);
 
+void interface_init_with_pulse(
+    chanend_t interface_fmsynth,
+    chanend_t interface_pulse);
+
 }  // extern "C"
 
 
