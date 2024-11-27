@@ -182,11 +182,9 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, int8_t state)
 
 void MEMLInterface::SendMIDI(ts_midi_note midi_note)
 {
-#if 0
     chan_out_buf_byte(
         interface_midi_,
         reinterpret_cast<uint8_t *>(&midi_note),
         sizeof(midi_note)
     );
-#endif
 }

@@ -142,7 +142,7 @@ int main(void){
                 i2s_loopback(i_i2s, audio_in);
                 i2s_frame_master(i_i2s, p_dac, NUM_I2S_LINES, p_adc, NUM_I2S_LINES, DATA_BITS, p_bclk, p_lrclk, p_mclk, bclk);
                 audio_app_paramupdate(interface_fmsynth);
-                //audio_app_midi(interface_midi);
+                audio_app_midi(interface_midi);
             }
         }
     }

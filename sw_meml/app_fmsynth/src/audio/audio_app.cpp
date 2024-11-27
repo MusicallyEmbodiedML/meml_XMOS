@@ -104,7 +104,7 @@ void audio_loop(chanend_t i2s_audio_in)
             }
             for(unsigned int ch = 0; ch < kAudioChannels; ch++) {
                 sample_buffer[ch][smp] = y;
-            //if (ch == 0) xscope_float(1, sample_buffer[ch][smp]);
+                if (ch == 0) xscope_float(1, sample_buffer[ch][smp]);
             }
         }
 
