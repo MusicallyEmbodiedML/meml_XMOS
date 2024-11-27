@@ -15,17 +15,6 @@ MEML_UART::MEML_UART(uart_tx_t *uart_tx) :
         button_states_{false},
         uart_tx_(uart_tx)
 {
-    // Initialise app
-    // TODO this should be persistent and in flash
-    gAppState.app_id = app_id_fmsynth;
-    gAppState.current_dataset = 0;
-    gAppState.current_expl_mode = expl_mode_pretrain;
-    gAppState.current_model = 0;
-    gAppState.current_nn_mode = mode_inference;
-    gAppState.exploration_range = 1.0f;
-    gAppState.last_error = 0;
-    gAppState.n_iterations = 500;
-
     // Ensure consistency of nn modes and expl modes
     if (meml_interface) {
         meml_interface->SetToggleButton(toggle_training, gAppState.current_nn_mode);
