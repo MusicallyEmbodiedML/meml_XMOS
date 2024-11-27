@@ -104,7 +104,7 @@ void audio_loop(chanend_t i2s_audio_in)
             }
             for(unsigned int ch = 0; ch < kAudioChannels; ch++) {
                 sample_buffer[ch][smp] = y;
-                if (ch == 0) xscope_float(1, sample_buffer[ch][smp]);
+                //if (ch == 0) xscope_float(1, sample_buffer[ch][smp]);
             }
         }
 
@@ -150,9 +150,9 @@ void audio_app_midi(chanend_t interface_midi)
             sizeof(ts_midi_note)
         );
 
-        // std::string note_on = (midi_note.velocity > 0) ? "on" : "off";
-        // std::printf("MIDI- Note %d %s.\n",
-        //         midi_note.note_number, note_on.c_str());
+        std::string note_on = (midi_note.velocity > 0) ? "on" : "off";
+        std::printf("MIDI- Note %d %s.\n",
+                midi_note.note_number, note_on.c_str());
 
         if (fmsyn != nullptr) {
             fmsyn->AddMIDINote(midi_note);
