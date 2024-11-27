@@ -11,10 +11,12 @@ extern "C" {
     #include "xassert.h"
 }
 
-#include "../chans_and_data.h"
+#include "chans_and_data.h"
 #include "audio_buffers.h"
 // Include audio components
 #include "Phasor.hpp"
+#include "Data.h"
+#include "EuclideanSeq.hpp"
 
 
 static port_t port1, port2;
