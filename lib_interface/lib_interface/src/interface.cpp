@@ -34,8 +34,8 @@ void interface_init_with_midi(chanend_t interface_fmsynth, chanend_t interface_m
 {
     meml_interface = new (meml_interface_mem_) MEMLInterface(
         interface_fmsynth,
-        interface_midi,
         static_cast<chanend_t>(0),
+        interface_midi,
         &(interface_gen_callback),
         kN_synthparams
     );
@@ -46,8 +46,8 @@ void interface_init_with_pulse(chanend_t interface_fmsynth, chanend_t interface_
 {
     meml_interface = new (meml_interface_mem_) MEMLInterface(
         interface_fmsynth,
-        static_cast<chanend_t>(0),
         interface_pulse,
+        static_cast<chanend_t>(0),
         &(interface_gen_callback),
         kN_synthparams
     );
