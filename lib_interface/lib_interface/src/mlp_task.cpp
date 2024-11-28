@@ -119,6 +119,10 @@ void mlp_train()
         std::printf("MLP- Restored pre-random weights.\n");
     }
 
+    // We're in inference, clear all zoom
+    flag_zoom_in_ = false;
+    std::printf("MLP- zoom: %d\n", flag_zoom_in_);
+
     MLP<float>::training_pair_t dataset(dataset_[ds_n_]->GetFeatures(), dataset_[ds_n_]->GetLabels());
 
     std::printf("MLP- Feature size %d, label size %d.\n", dataset.first.size(), dataset.second.size());
@@ -142,8 +146,6 @@ void mlp_train()
     // Report loss back to state and UI
     gAppState.last_error = loss;
     uart_update_loss(loss);
-
-    flag_zoom_in_ = false;
 }
 
 
@@ -232,6 +234,9 @@ void mlp_draw(float speed)
 
             flag_zoom_in_ = true;
             zoom_mode_centre_ = mlp_stored_input;
+            std::printf("MLP- Moving with speed %f%% around (%.3f, %.3f, %.3f).\n",
+                speed*100.f, zoom_mode_centre_.potX, zoom_mode_centre_.potY,
+                zoom_mode_centre_.potRotate);
 
         } else if (expl_mode_internal_ == expl_mode_pretrain) {
 
@@ -304,7 +309,7 @@ void mlp_set_speed(float speed)
 void mlp_set_expl_mode(te_expl_mode mode)
 {
     expl_mode_internal_ = mode;
-    redraw_weights_ = true;
+    // redraw_weights_ = true;
     zoom_mode_centre_ = kZoom_mode_reset;
 }
 
@@ -334,28 +339,31 @@ void mlp_set_dataset_idx(size_t idx)
 void mlp_inference_nochannel(ts_joystick_read joystick_read) {
 
     // Function to zoom and offset by given range
-    static const auto zoom_in_ = [](float x, float move_by) {
-        float local_range = speed_;
-        float max_radius = (0.5f*speed_ + move_by) - 1.0f;
+    static const auto zoom_in_ = [](float x, float move_by, char coord) {
+        float local_range = 0.5f*speed_;
+        float move_by_mod = move_by;
+        // Nudge if too big
+        float max_radius = local_range + move_by - 1.0f;
         if (max_radius > 0) {
-            local_range -= max_radius;
+            move_by_mod -= max_radius;
         }
-        float min_radius = -0.5f*speed_ + move_by;
+        // Nudge if too small
+        float min_radius = move_by - local_range;
         if (min_radius < 0) {
-            local_range += min_radius;
+            move_by_mod -= min_radius;
         }
         // Scale and move
-        float y = (x - 0.5f) * local_range + move_by;
-        xassert(y >= 0 && "MLP- joystick scaling out of range");
-        xassert(y <= 1.f && "MLP- joystick scaling out of range");
+        float y = (x - 0.5f) * speed_ + move_by_mod;
+        y = (y < 0) ? 0 : y;
+        y = (y > 1.f) ? 1.f : y;
         return y;
     };
 
     // If we're zooming in, we want speed to shrink our view
     if (flag_zoom_in_) {
-        joystick_read.potX = zoom_in_(joystick_read.potX, zoom_mode_centre_.potX);
-        joystick_read.potY = zoom_in_(joystick_read.potY, zoom_mode_centre_.potY);
-        joystick_read.potRotate = zoom_in_(joystick_read.potRotate, zoom_mode_centre_.potRotate);
+        joystick_read.potX = zoom_in_(joystick_read.potX, zoom_mode_centre_.potX, 'x');
+        joystick_read.potY = zoom_in_(joystick_read.potY, zoom_mode_centre_.potY, 'y');
+        joystick_read.potRotate = zoom_in_(joystick_read.potRotate, zoom_mode_centre_.potRotate, 'z');
     }
 
         // Store current joystick read
