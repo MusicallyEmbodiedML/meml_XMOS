@@ -122,7 +122,7 @@ void audio_app_init(float sample_rate, port_t p1, port_t p2)
     port2 = p2;
 }
 
-static unsigned int counter = 0;
+// static unsigned int counter = 0;
 
 void audio_loop(chanend_t i2s_audio_in)
 {
@@ -139,11 +139,12 @@ void audio_loop(chanend_t i2s_audio_in)
 
         for (unsigned int smp = 0; smp < kAudioSamples; smp++) {
 
-            if (counter++ >= 48000) {
-                std::printf(".\n");
-                counter = 0;
-            }
+            // if (counter++ >= 48000) {
+            //     std::printf(".\n");
+            //     counter = 0;
+            // }
             float phasor = ph->Process();
+            bool pulse = ph->ToPulse(phasor);
             //xscope_float(1, phasor);
 
             // Generate     
@@ -156,15 +157,22 @@ void audio_loop(chanend_t i2s_audio_in)
                 // }
 
                 // Port outs
-                if (i_generator == 7) {
-                    port2Out = euclideanSig;
-                }else{
+                // - Pulse
+                port2Out = pulse;
+                // - Sequencers
+                if (i_generator < 4) {
                     if (euclideanSig) {
                         //on
                         port1Out |= (0x1 << i_generator);
                     }else{
                         //off
                         port1Out &= (~(0x1 << i_generator));
+                    }
+                } else {
+                    static bool warn = false;
+                    if (!warn) {
+                        std::printf("kNGenerators > 4, choose a larger port.\n");
+                        warn = true;
                     }
                 }
 
@@ -196,6 +204,7 @@ void audio_app_paramupdate(chanend_t fmsynth_paramupdate)
         );
 
         for (unsigned int n_gen = 0; n_gen < kNGenerators; n_gen++) {
+            // Chop up the parameter vector into smaller vectors of n_params parameters
             std::vector<num_t>::iterator start = params.begin() + n_gen*EuclideanSeq::n_params;
             std::vector<num_t>::iterator end = start + EuclideanSeq::n_params;
             std::vector<num_t> single_gen_params(start, end);
